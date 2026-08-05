@@ -1,0 +1,4 @@
+version: 2
+
+# Semantic layer definitions live on the model patches in
+# models/marts/core/schema.yml using the latest Fusion-compatible spec.

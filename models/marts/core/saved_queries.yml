@@ -1,0 +1,5 @@
+version: 2
+
+# Saved queries are disabled while the project uses the latest Fusion semantic
+# spec. Re-enable them after their metric and dimension references are migrated.
+saved_queries: []

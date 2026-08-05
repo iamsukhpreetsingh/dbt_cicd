@@ -1,0 +1,31 @@
+# profiles/profiles.yml
+#
+# Single "ci" target, populated entirely from environment variables.
+# The VALUES differ per GitHub Environment (dev / staging / production) —
+# the FILE never changes. This is the same pattern as a Terraform pipeline
+# that reads one set of variable names but sources different values per
+# workspace/environment.
+#
+# Replace "my_dbt_project" below with the `profile:` name in your dbt_project.yml.
+
+dbt_practice:
+  target: "{{ env_var('DBT_TARGET', 'ci') }}"
+  outputs:
+    ci:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+
+      # Supports either password or key-pair auth. Key-pair is strongly
+      # recommended for CI/CD service accounts (no password rotation pain).
+      authenticator: "{{ env_var('SNOWFLAKE_AUTHENTICATOR', 'snowflake') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD', '') }}"
+      private_key: "{{ env_var('SNOWFLAKE_PRIVATE_KEY', '') }}"
+      private_key_passphrase: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PASSPHRASE', '') }}"
+
+      role: "{{ env_var('SNOWFLAKE_ROLE') }}"
+      database: "{{ env_var('SNOWFLAKE_DATABASE') }}"
+      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE') }}"
+      schema: "{{ env_var('SNOWFLAKE_SCHEMA') }}"
+      threads: "{{ env_var('DBT_THREADS', '4') | as_number }}"
+      query_tag: "{{ env_var('GITHUB_WORKFLOW', 'dbt_ci') }}"

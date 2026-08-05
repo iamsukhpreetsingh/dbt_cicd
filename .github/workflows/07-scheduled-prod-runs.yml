@@ -1,0 +1,81 @@
+name: "07 - Scheduled Production Runs"
+
+# Diagram step 10: "Schedule Recurring Runs"
+# Independent of the merge-triggered chain — runs on cron, selecting
+# different tagged model sets per schedule (finance / marketing /
+# analytics). SLAs + freshness expectations should be enforced via
+# dbt source freshness + tests tagged accordingly.
+
+on:
+  schedule:
+    # Adjust cron to your SLAs. All times UTC.
+    - cron: "0 * * * *"     # hourly  -> finance models
+    - cron: "0 6 * * *"     # daily   -> marketing models
+    - cron: "0 8 * * 1"     # weekly (Mon) -> analytics/product models
+  workflow_dispatch:         # manual trigger for ad-hoc / backfill runs
+    inputs:
+      select:
+        description: "dbt --select override (leave blank to use schedule mapping)"
+        required: false
+        default: ""
+
+jobs:
+  scheduled-run:
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      DBT_TARGET: ci
+      DBT_PROFILES_DIR: ${{ github.workspace }}/profiles
+      SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+      SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+      SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
+      SNOWFLAKE_ROLE: ${{ vars.SNOWFLAKE_ROLE }}
+      SNOWFLAKE_DATABASE: ${{ vars.SNOWFLAKE_DATABASE }}
+      SNOWFLAKE_WAREHOUSE: ${{ vars.SNOWFLAKE_WAREHOUSE }}
+      SNOWFLAKE_SCHEMA: ${{ vars.SNOWFLAKE_SCHEMA }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dbt
+        run: |
+          python -m pip install --upgrade pip
+          pip install dbt-snowflake==1.8.*
+
+      - name: dbt deps
+        run: dbt deps
+
+      - name: Map cron schedule to model selector
+        id: selector
+        run: |
+          if [ -n "${{ github.event.inputs.select }}" ]; then
+            echo "select=${{ github.event.inputs.select }}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          case "${{ github.event.schedule }}" in
+            "0 * * * *")   echo "select=tag:finance" >> "$GITHUB_OUTPUT" ;;
+            "0 6 * * *")   echo "select=tag:marketing" >> "$GITHUB_OUTPUT" ;;
+            "0 8 * * 1")   echo "select=tag:analytics tag:product" >> "$GITHUB_OUTPUT" ;;
+            *)             echo "select=" >> "$GITHUB_OUTPUT" ;;
+          esac
+
+      - name: dbt build + freshness check
+        run: |
+          dbt source freshness --target ci
+          dbt build --target ci --select ${{ steps.selector.outputs.select }}
+
+      - name: Alert Slack on failure
+        if: failure() && env.SLACK_WEBHOOK_URL != ''
+        run: |
+          curl -s -X POST -H 'Content-type: application/json' \
+            --data "{\"text\": \"🚨 Scheduled dbt run failed — select: \`${{ steps.selector.outputs.select }}\`. <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>\"}" \
+            "$SLACK_WEBHOOK_URL"
