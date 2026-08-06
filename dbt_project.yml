@@ -25,6 +25,7 @@ clean-targets:
 
 on-run-start:
 - "ALTER SESSION SET QUERY_TAG = 'dbt_run_{{ invocation_id }}'"
+- "{{ safe_create_target_schema('INTERMEDIATE') }}"
 
 on-run-end:
 - "ALTER SESSION SET QUERY_TAG = ''"
@@ -32,6 +33,8 @@ on-run-end:
 vars:
   date_spine_start: '2020-01-01'
   date_spine_end: '2026-12-31'
+  
+  bi_role: 'SYSADMIN'
 
 seeds:
   dbt_project_evaluator:
@@ -115,7 +118,7 @@ models:
         +tags: [ 'feedback' ]
 
     intermediate:
-      +materialized: ephemeral
+      +materialized: table
       +schema: intermediate
       +tags: [ 'intermediate' ]
 

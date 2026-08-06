@@ -12,10 +12,10 @@ customer_visit_metrics as (
     select
         customer_id,
         count(*) as total_visits,
-        sum(ticket_price) as lifetime_tickets_revenue,
+        sum(ticket_price) as lifetime_ticket_revenue,
         sum(in_park_spend) as lifetime_in_park_spend,
         sum(total_visit_spend) as lifetime_total_spend,
-        avg(total_visit_spend) as avg_spend_pervisit
+        avg(total_visit_spend) as avg_spend_per_visit
     from visits
     group by 1
 ),
