@@ -70,8 +70,8 @@ enriched as (
         end                                                         as loyalty_tier,
 
         case
-            when c.is_vip_member and c.loyalty_points >= 1000      then 'High Value'
-            when c.is_vip_member or  c.loyalty_points >= 500       then 'Mid Value'
+            when c.is_vip_member and c.loyalty_points >= 1000      then 'HighValue'
+            when c.is_vip_member or  c.loyalty_points >= 500       then 'MidValue'
             else 'Standard'
         end                                                         as customer_value_segment,
 
@@ -91,9 +91,9 @@ enriched as (
 
         case
             when c.is_vip_member = false
-                and c.loyalty_points >= 400                         then 'VIP Upgrade'
+                and c.loyalty_points >= 400                         then 'VIPUpgrade'
             when c.marketing_opt_in = true
-                and c.is_vip_member = false                         then 'Premium Pass'
+                and c.is_vip_member = false                         then 'PremiumPass'
             else 'None'
         end                                                         as upsell_opportunity,
 

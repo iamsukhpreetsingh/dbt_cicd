@@ -54,8 +54,8 @@ final as (
         round(r.avg_booking_lead_days, 2) as avg_booking_lead_days,
         r.total_visits > 1 as is_repeat_visitor,
         case
-            when r.lifetime_total_spend >= 250 then 'High Value'
-            when r.lifetime_total_spend >= 100 then 'Mid Value'
+            when r.lifetime_total_spend >= 250 then 'HighValue'
+            when r.lifetime_total_spend >= 100 then 'MidValue'
             else 'Standard'
         end as behavioral_value_segment,
         case
