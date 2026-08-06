@@ -144,7 +144,7 @@ models:
     - not_null
     - accepted_values:
         arguments:
-          values: [ 'High Value', 'Mid Value', 'Standard' ]
+          values: [ 'HighValue', 'MidValue', 'Standard' ]
   - name: customer_lifecycle_stage
     description: Lifecycle stage inherited from `dim_customers`.
   - name: total_visits
@@ -209,7 +209,7 @@ models:
     - not_null
     - accepted_values:
         arguments:
-          values: [ 'High Value', 'Mid Value', 'Standard' ]
+          values: [ 'HighValue', 'MidValue', 'Standard' ]
   - name: recency_segment
     description: Recency bucket derived from days since last visit.
     data_tests:
