@@ -11,7 +11,7 @@ date_dim as (
 select
     {{ dbt_utils.generate_surrogate_key(['s.transaction_id']) }} as sales_key,
     s.transaction_id,
-    s.customer_id,
+    s.customer_id AS cust_id,
     s.visit_date,
     d.day_of_week,
     d.month_name,

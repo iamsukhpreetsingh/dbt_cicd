@@ -8,6 +8,6 @@ ci/.user.yml
 edr_target/
 .venv
 # Docs - kept locally but not tracked
-
 .venv/
 .venv/
+opencode.json
