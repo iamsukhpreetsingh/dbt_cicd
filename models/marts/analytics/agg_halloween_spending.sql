@@ -2,7 +2,7 @@
 
 -- How does ticket spending vary relative to Halloween?
 -- Grain: one row per date bucket (proximity to Oct 31)
--- Var: halloween_analysis_start_date controls how far back to include data
+
 
 with sales as (
     select * from {{ ref('fct_all_ticket_sales') }}
