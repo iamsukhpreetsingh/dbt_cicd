@@ -15,7 +15,7 @@ customer_visit_metrics as (
         sum(ticket_price) as lifetime_tickets_revenue,
         sum(in_park_spend) as lifetime_in_park_spend,
         sum(total_visit_spend) as lifetime_total_spend,
-        avg(total_visit_spend) as avg_spend_per_visit
+        avg(total_visit_spend) as avg_spend_pervisit
     from visits
     group by 1
 ),
