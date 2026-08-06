@@ -10,8 +10,8 @@ with feedback as (
 
 select
     haunted_house_name,
-    count(*)                                                as total_visits,
-    round(avg(satisfaction_rating), 2)                      as avg_satisfaction,
+    count(*)                                                as total_Visits,
+    round(avg(satisfaction_rating), 2)                      as avg_Satisfaction,
     round(
         sum(case when would_recommend then 1 else 0 end)::numeric
         / nullif(count(*), 0) * 100, 2

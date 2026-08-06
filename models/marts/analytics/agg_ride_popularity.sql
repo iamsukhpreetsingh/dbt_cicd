@@ -21,10 +21,10 @@ select
     has_reviews,
     review_count_band,
     case
-        when avg_rating >= 4.5 then 'Top_Rated'
-        when avg_rating >= 3.5 then 'Well_Rated'
+        when avg_rating >= 4.5 then 'Top Rated'
+        when avg_rating >= 3.5 then 'Well Rated'
         when avg_rating >= 2.5 then 'Average'
-        when avg_rating > 0 then 'Below_Average'
+        when avg_rating > 0 then 'Below Average'
         else 'Not Yet Rated'
     end as rating_tier,
     case
