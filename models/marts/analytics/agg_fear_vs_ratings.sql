@@ -1,7 +1,7 @@
 {{ config(materialized='table') }}
 
 -- Is there a link between fear level and satisfaction ratings?
--- Grain: one row per (visitor_type, fear_level) + one overall row per fear_level
+-- Grain: one row per (visitor_type, fear_level) + one overall row per 
 
 with feedback as (
     select * from {{ ref('stg_feedback__haunted_visitor_feedback') }}
