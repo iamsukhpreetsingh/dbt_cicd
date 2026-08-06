@@ -8,13 +8,7 @@ packages:
   - name: dbt_project_evaluator
     package: dbt-labs/dbt_project_evaluator
     version: 1.3.4
-  - git: https://github.com/dbt-labs/dbt-audit-helper.git
-    name: audit_helper
-    revision: d10124ad1ebde3a1a7f140e2616814229fab8bbd
-  - name: elementary
-    package: elementary-data/elementary
-    version: 0.25.1
   - name: dbt_date
     package: godatadriven/dbt_date
     version: 0.19.0
-sha1_hash: ad6a9ff10243fb2b91dec90cf4e32accd33db6b7
+sha1_hash: 2348bf1afa2771580708af43d14312afcefa7b75
