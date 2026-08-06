@@ -56,12 +56,7 @@ jobs:
       with:
         script: |
           const branch = context.payload.workflow_run.head_branch;
-
-          if (branch === context.payload.repository.default_branch) {
-            core.notice(`Workflow 02 ran on default branch (${branch}) — not a PR deploy, skipping.`);
-            core.setOutput("skip", "true");
-            return;
-          }
+          const sha = context.payload.workflow_run.head_sha;
 
           const { data: prs } = await github.rest.pulls.list({
             owner: context.repo.owner,
@@ -70,42 +65,50 @@ jobs:
             state: "open",
           });
 
-          if (prs.length === 0) {
-            core.notice(`No open PR found for branch ${branch} — skipping.`);
-            core.setOutput("skip", "true");
-            return;
+          if (prs.length > 0) {
+            core.notice(`PR deploy: ${prs[0].number} (${branch})`);
+            core.setOutput("is_pr", "true");
+            core.setOutput("number", prs[0].number);
+            core.setOutput("sha", sha);
+          } else {
+            core.notice(`Post-merge deploy: ${branch} at ${sha}`);
+            core.setOutput("is_pr", "false");
+            core.setOutput("sha", sha);
           }
 
-          core.setOutput("skip", "false");
-          core.setOutput("number", prs[0].number);
-          core.setOutput("sha", context.payload.workflow_run.head_sha);
-
     - name: Checkout PR head commit
-      if: steps.pr.outputs.skip == 'false'
       uses: actions/checkout@v4
       with:
         ref: ${{ steps.pr.outputs.sha }}
         fetch-depth: 0
 
     - name: Set up Python
-      if: steps.pr.outputs.skip == 'false'
       uses: actions/setup-python@v5
       with:
         python-version: "3.11"
         cache: "pip"
 
     - name: Install dbt
-      if: steps.pr.outputs.skip == 'false'
       run: |
         python -m pip install --upgrade pip
         pip install dbt-snowflake==1.8.*
 
     - name: dbt deps
-      if: steps.pr.outputs.skip == 'false'
       run: dbt deps
 
+    - name: Checkout prod manifest for incremental builds
+      run: |
+        git fetch origin dbt-prod-state:dbt-prod-state 2>/dev/null || true
+        mkdir -p prod-manifest
+        if git show dbt-prod-state:manifest.json > prod-manifest/manifest.json.tmp 2>/dev/null; then
+          mv prod-manifest/manifest.json.tmp prod-manifest/manifest.json
+          echo "Found prior manifest — will build incrementally."
+        else
+          rm -f prod-manifest/manifest.json.tmp
+          echo "No prior manifest — will do a full build."
+        fi
+
     - name: dbt build (staging schema, standard + heavier tests)
-      if: steps.pr.outputs.skip == 'false'
       run: |
         dbt build --target ci \
           --select "state:modified+" \
@@ -114,20 +117,24 @@ jobs:
       # exists yet (see 04-deploy-production.yml, which publishes one).
 
     - name: dbt test (freshness, accepted values, relationships)
-      if: steps.pr.outputs.skip == 'false'
       run: dbt test --target ci --select "tag:heavy_validation" || true
-      # `heavy_validation` is a suggested tag convention — tag your
-      # freshness/accepted_values/relationship tests with it in schema.yml.
 
     - name: Report staging validation status
-      if: always() && steps.pr.outputs.skip == 'false'
+      if: always()
       uses: actions/github-script@v7
       with:
         script: |
-          const status = "${{ job.status }}" === "success" ? "✅ validated in staging" : "❌ staging validation failed";
-          github.rest.issues.createComment({
-            issue_number: ${{ steps.pr.outputs.number }},
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: `**Staging Deploy:** ${status}\n\nRun: [#${context.runId}](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})\n\nThis PR is ready for reviewer sign-off once this check is green.`
-          });
+          const isPR = "${{ steps.pr.outputs.is_pr }}" === "true";
+          const status = "${{ job.status }}" === "success" ? "✅ deployed to staging" : "❌ staging deployment failed";
+          let body = `**Staging Deploy:** ${status}\n\nRun: [#${context.runId}](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
+          if (isPR) {
+            body += `\n\nThis PR is ready for reviewer sign-off once this check is green.`;
+          }
+          if (${{ steps.pr.outputs.number }}) {
+            github.rest.issues.createComment({
+              issue_number: ${{ steps.pr.outputs.number }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });
+          }
