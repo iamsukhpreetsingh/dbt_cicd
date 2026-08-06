@@ -12,8 +12,8 @@ aggregated as (
     select
         haunted_house_name,
         case
-            when includes_vip_benefits and includes_fast_pass  then 'VIP + Fast Pass'
-            when includes_vip_benefits                          then 'VIP Only'
+            when includes_vip_benefits and includes_fast_pass  then 'VIP+Fast Pass'
+            when includes_vip_benefits                          then 'VIP only'
             when includes_fast_pass                             then 'Fast Pass Only'
             else 'Standard'
         end                                                 as ticket_tier,
