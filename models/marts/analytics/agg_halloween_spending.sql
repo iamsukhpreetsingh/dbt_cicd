@@ -16,9 +16,9 @@ dates as (
 aggregated as (
     select
         case
-            when d.days_to_halloween = 0                        then 'Halloween Day'
-            when d.days_to_halloween between 1 and 7            then 'Week of Halloween'
-            when d.days_to_halloween between 8 and 30           then 'October Pre-Halloween'
+            when d.days_to_halloween = 0                        then 'Halloween Day 1'
+            when d.days_to_halloween between 1 and 7            then 'Week of Halloween 1'
+            when d.days_to_halloween between 8 and 30           then 'October Pre-Halloween 1'
             when d.days_to_halloween between 31 and 60          then '2 Months Before'
             when d.days_to_halloween < 0
                 and d.days_to_halloween >= -14                  then 'Post Halloween (2 wks)'
