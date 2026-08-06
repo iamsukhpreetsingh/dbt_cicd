@@ -3,132 +3,132 @@ version: 2
 
 models:
 
-- name: dim_customers
-  description: Customer dimension with segmentation, lifecycle, and retention attributes.
-  semantic_model:
-    enabled: true
-  agg_time_dimension: registration_date
-  columns:
-  - name: customer_id
-    description: Natural primary key for the customer account.
-    entity:
-      type: primary
-      name: customer
-    data_tests:
-    - unique
-    - not_null
-  - name: first_name
-    description: Customer's given name.
-    data_tests:
-    - not_null
-  - name: last_name
-    description: Customer's family name.
-    data_tests:
-    - not_null
-  - name: email
-    description: Customer email address.
-    data_tests:
-    - unique
-    - not_null
-  - name: is_valid_email
-    description: TRUE when email matches the standard email regex pattern.
-    data_tests:
-    - not_null
-  - name: phone
-    description: Customer contact phone number.
-  - name: address
-    description: Street address.
-  - name: city
-    description: City.
-  - name: state
-    description: State code.
-  - name: state_name
-    description: Full state name.
-  - name: zip_code
-    description: Postal zip code.
-  - name: age
-    description: Customer's current age in whole years.
-    data_tests:
-    - not_null
-  - name: gender
-    description: Gender.
-  - name: is_vip_member
-    description: VIP membership flag.
-    dimension:
-      type: categorical
-    data_tests:
-    - not_null
-  - name: marketing_opt_in
-    description: Marketing opt-in flag.
-  - name: preferred_scare_level
-    description: Proxy preferred scare level.
-    data_tests:
-    - not_null
-  - name: loyalty_points
-    description: Loyalty points.
-    data_tests:
-    - not_null
-  - name: registration_date
-    description: Date the customer account was first created.
-    granularity: day
-    dimension:
-      type: time
-    data_tests:
-    - not_null
-  - name: age_group
-    description: Demographic age cohort.
-    data_tests:
-    - not_null
-    - accepted_values:
-        arguments:
-          values: [ 'Under 18', '18-24', '25-34', '35-44', '45-54', '55+' ]
-  - name: loyalty_tier
-    description: Loyalty tier.
-    dimension:
-      type: categorical
-    data_tests:
-    - not_null
-    - accepted_values:
-        arguments:
-          values: [ 'Gold', 'Silver', 'Bronze' ]
-  - name: customer_value_segment
-    description: Combined VIP and loyalty segment.
-    dimension:
-      type: categorical
-    data_tests:
-    - not_null
-    - accepted_values:
-        arguments:
-          values: [ 'HighValue', 'MidValue', 'Standard' ]
-  - name: customer_lifecycle_stage
-    description: Tenure-based lifecycle stage.
-    data_tests:
-    - not_null
-    - accepted_values:
-        arguments:
-          values: [ 'New', 'Growing', 'Established' ]
-  - name: retention_risk_level
-    description: Churn risk proxy.
-    dimension:
-      type: categorical
-    data_tests:
-    - not_null
-    - accepted_values:
-        arguments:
-          values: [ 'High', 'Medium', 'Low' ]
-  - name: upsell_opportunity
-    description: Recommended upsell action.
-    data_tests:
-    - not_null
-    - accepted_values:
-        arguments:
-          values: [ 'VIPUpgrade', 'PremiumPass', 'None' ]
-  - name: created_at
-    description: Timestamp the customer account was created.
-    data_tests:
-    - not_null
-  - name: updated_at
-    description: Last update timestamp.
+# - name: dim_customers
+#   description: Customer dimension with segmentation, lifecycle, and retention attributes.
+#   semantic_model:
+#     enabled: true
+#   agg_time_dimension: registration_date
+#   columns:
+#   - name: customer_id
+#     description: Natural primary key for the customer account.
+#     entity:
+#       type: primary
+#       name: customer
+#     data_tests:
+#     - unique
+#     - not_null
+#   - name: first_name
+#     description: Customer's given name.
+#     data_tests:
+#     - not_null
+#   - name: last_name
+#     description: Customer's family name.
+#     data_tests:
+#     - not_null
+#   - name: email
+#     description: Customer email address.
+#     data_tests:
+#     - unique
+#     - not_null
+#   - name: is_valid_email
+#     description: TRUE when email matches the standard email regex pattern.
+#     data_tests:
+#     - not_null
+#   - name: phone
+#     description: Customer contact phone number.
+#   - name: address
+#     description: Street address.
+#   - name: city
+#     description: City.
+#   - name: state
+#     description: State code.
+#   - name: state_name
+#     description: Full state name.
+#   - name: zip_code
+#     description: Postal zip code.
+#   - name: age
+#     description: Customer's current age in whole years.
+#     data_tests:
+#     - not_null
+#   - name: gender
+#     description: Gender.
+#   - name: is_vip_member
+#     description: VIP membership flag.
+#     dimension:
+#       type: categorical
+#     data_tests:
+#     - not_null
+#   - name: marketing_opt_in
+#     description: Marketing opt-in flag.
+#   - name: preferred_scare_level
+#     description: Proxy preferred scare level.
+#     data_tests:
+#     - not_null
+#   - name: loyalty_points
+#     description: Loyalty points.
+#     data_tests:
+#     - not_null
+#   - name: registration_date
+#     description: Date the customer account was first created.
+#     granularity: day
+#     dimension:
+#       type: time
+#     data_tests:
+#     - not_null
+#   - name: age_group
+#     description: Demographic age cohort.
+#     data_tests:
+#     - not_null
+#     - accepted_values:
+#         arguments:
+#           values: [ 'Under 18', '18-24', '25-34', '35-44', '45-54', '55+' ]
+#   - name: loyalty_tier
+#     description: Loyalty tier.
+#     dimension:
+#       type: categorical
+#     data_tests:
+#     - not_null
+#     - accepted_values:
+#         arguments:
+#           values: [ 'Gold', 'Silver', 'Bronze' ]
+#   - name: customer_value_segment
+#     description: Combined VIP and loyalty segment.
+#     dimension:
+#       type: categorical
+#     data_tests:
+#     - not_null
+#     - accepted_values:
+#         arguments:
+#           values: [ 'HighValue', 'MidValue', 'Standard' ]
+#   - name: customer_lifecycle_stage
+#     description: Tenure-based lifecycle stage.
+#     data_tests:
+#     - not_null
+#     - accepted_values:
+#         arguments:
+#           values: [ 'New', 'Growing', 'Established' ]
+#   - name: retention_risk_level
+#     description: Churn risk proxy.
+#     dimension:
+#       type: categorical
+#     data_tests:
+#     - not_null
+#     - accepted_values:
+#         arguments:
+#           values: [ 'High', 'Medium', 'Low' ]
+#   - name: upsell_opportunity
+#     description: Recommended upsell action.
+#     data_tests:
+#     - not_null
+#     - accepted_values:
+#         arguments:
+#           values: [ 'VIPUpgrade', 'PremiumPass', 'None' ]
+#   - name: created_at
+#     description: Timestamp the customer account was created.
+#     data_tests:
+#     - not_null
+#   - name: updated_at
+#     description: Last update timestamp.
 
 - name: dim_rides
   description: >
