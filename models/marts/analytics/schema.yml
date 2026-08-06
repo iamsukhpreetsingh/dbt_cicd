@@ -65,6 +65,10 @@ models:
     description: Non-additive measure derived from total_revenue and unique_visitors.
     data_tests:
     - not_null
+  - name: avg_ticket_price
+    description: Average ticket price per ticket sold (total_revenue / tickets_sold).
+    data_tests:
+    - not_null
 
 - name: agg_customer_lifetime_value
   description: Customer lifetime value aggregated by loyalty tier and customer value segment.
