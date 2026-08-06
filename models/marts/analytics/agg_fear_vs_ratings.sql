@@ -19,7 +19,7 @@ by_type_and_fear as (
 
 overall_by_fear as (
     select
-        'All Visitors'                      as visitor_type,
+        'All Visitors'                      as visitor_types,
         fear_level,
         round(avg(satisfaction_rating), 2)  as avg_satisfaction,
         count(*)                            as total_visits
