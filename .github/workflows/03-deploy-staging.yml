@@ -49,7 +49,7 @@ jobs:
     # workflow_run fires for EVERY completed run of "02", including runs
     # that happen on main (e.g. workflow 02 re-running as a side effect of
     # a merge). Those runs have no open PR by definition — that's not a
-    # failure, it's a signal to skip this deploy quietly rather than go red.
+    # failure, it's a signal to skip the PR-only parts quietly, not error.
     - name: Resolve PR + head SHA
       id: pr
       uses: actions/github-script@v7
@@ -118,21 +118,39 @@ jobs:
 
     - name: dbt test (freshness, accepted values, relationships)
       run: dbt test --target ci --select "tag:heavy_validation" || true
+      # Currently a no-op warning ("does not match any enabled nodes") until
+      # you tag freshness/accepted_values/relationships tests with
+      # `heavy_validation` in schema.yml — see the convention noted in
+      # 03's original comments.
 
+      # NOTE on the previous version of this step: interpolating step outputs
+      # directly into the script body (`${{ steps.pr.outputs.number }}`) is
+      # unsafe when that output is unset — GitHub substitutes empty string at
+      # the YAML level BEFORE the JS is parsed, so `if (${{ ... }})` silently
+      # became `if ()`, a JS syntax error, on any post-merge (non-PR) run.
+      # Fix: pass values through `env:` instead. Env vars are always valid
+      # strings (even "" when unset), so we can check them safely inside JS.
     - name: Report staging validation status
       if: always()
       uses: actions/github-script@v7
+      env:
+        IS_PR: ${{ steps.pr.outputs.is_pr }}
+        PR_NUMBER: ${{ steps.pr.outputs.number }}
+        JOB_STATUS: ${{ job.status }}
       with:
         script: |
-          const isPR = "${{ steps.pr.outputs.is_pr }}" === "true";
-          const status = "${{ job.status }}" === "success" ? "✅ deployed to staging" : "❌ staging deployment failed";
+          const isPR = process.env.IS_PR === "true";
+          const prNumber = process.env.PR_NUMBER;
+          const status = process.env.JOB_STATUS === "success" ? "✅ deployed to staging" : "❌ staging deployment failed";
+
           let body = `**Staging Deploy:** ${status}\n\nRun: [#${context.runId}](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
           if (isPR) {
             body += `\n\nThis PR is ready for reviewer sign-off once this check is green.`;
           }
-          if (${{ steps.pr.outputs.number }}) {
+
+          if (prNumber) {
             github.rest.issues.createComment({
-              issue_number: ${{ steps.pr.outputs.number }},
+              issue_number: Number(prNumber),
               owner: context.repo.owner,
               repo: context.repo.repo,
               body
