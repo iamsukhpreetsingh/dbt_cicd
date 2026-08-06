@@ -25,7 +25,7 @@ renamed as (
             else 0
         end::numeric(5, 2)                                      as discount_percent,
 
-        null::int                                               as visit_hours,
+        null::int                                               as visit_hour,
         'credit_card'::varchar                                  as payment_method,
         'online'                                                as purchase_channel,
         true::boolean                                           as is_online
