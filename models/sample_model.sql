@@ -1,1 +1,1 @@
-select 1 sample_col
+select 1 sample_cloumns
