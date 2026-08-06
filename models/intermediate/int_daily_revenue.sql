@@ -5,7 +5,7 @@
 with ticket_revenue as (
     select
         visit_date,
-        sum(final_price)            as ticket_revenues,
+        sum(final_price)            as ticket_revenue,
         count(distinct customer_id) as unique_visitors,
         count(ticket_id)            as tickets_sold
     from {{ ref('stg_sales__tickets') }}
