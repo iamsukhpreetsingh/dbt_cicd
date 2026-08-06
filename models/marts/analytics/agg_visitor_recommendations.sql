@@ -10,7 +10,7 @@ with feedback as (
 
 aggregated as (
     select
-        visitor_type,
+        visitor_type as VisitorType,
         count(*)                                            as total_visits,
         round(
             sum(case when would_recommend then 1 else 0 end)::numeric
