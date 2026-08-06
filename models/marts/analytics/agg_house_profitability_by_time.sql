@@ -10,7 +10,7 @@ with feedback as (
 select
     haunted_house_name,
     visit_hour,
-    {{ visit_time_of_day('visit_hour') }}                   as time_slot,
+    {{ visit_time_of_day('visit_hour') }}                   as time_slots,
     count(*)                                                as total_visits,
     round(sum(ticket_price), 2)                             as total_revenue,
     round(avg(ticket_price), 2)                             as avg_ticket_price,
