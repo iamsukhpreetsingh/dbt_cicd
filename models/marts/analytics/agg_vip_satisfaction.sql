@@ -28,7 +28,7 @@ vip_baseline as (
 
 select
     h.haunted_house_name,
-    h.is_vip,
+    h.is_vip AS isVIP,
     h.avg_satisfaction,
     round(b.vip_avg - b.non_vip_avg, 2)                    as satisfaction_gap
 from house_vip_stats h
