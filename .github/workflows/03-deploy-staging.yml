@@ -45,12 +45,23 @@ jobs:
     # completes (see: https://github.com/orgs/community/discussions/25220
     # and similar reports). head_branch / head_sha on workflow_run itself
     # are always reliably populated, so we look the PR up from those.
+    #
+    # workflow_run fires for EVERY completed run of "02", including runs
+    # that happen on main (e.g. workflow 02 re-running as a side effect of
+    # a merge). Those runs have no open PR by definition — that's not a
+    # failure, it's a signal to skip this deploy quietly rather than go red.
     - name: Resolve PR + head SHA
       id: pr
       uses: actions/github-script@v7
       with:
         script: |
           const branch = context.payload.workflow_run.head_branch;
+
+          if (branch === context.payload.repository.default_branch) {
+            core.notice(`Workflow 02 ran on default branch (${branch}) — not a PR deploy, skipping.`);
+            core.setOutput("skip", "true");
+            return;
+          }
 
           const { data: prs } = await github.rest.pulls.list({
             owner: context.repo.owner,
@@ -60,34 +71,41 @@ jobs:
           });
 
           if (prs.length === 0) {
-            core.setFailed(`No open PR found for branch ${branch}`);
+            core.notice(`No open PR found for branch ${branch} — skipping.`);
+            core.setOutput("skip", "true");
             return;
           }
 
+          core.setOutput("skip", "false");
           core.setOutput("number", prs[0].number);
           core.setOutput("sha", context.payload.workflow_run.head_sha);
 
     - name: Checkout PR head commit
+      if: steps.pr.outputs.skip == 'false'
       uses: actions/checkout@v4
       with:
         ref: ${{ steps.pr.outputs.sha }}
         fetch-depth: 0
 
     - name: Set up Python
+      if: steps.pr.outputs.skip == 'false'
       uses: actions/setup-python@v5
       with:
         python-version: "3.11"
         cache: "pip"
 
     - name: Install dbt
+      if: steps.pr.outputs.skip == 'false'
       run: |
         python -m pip install --upgrade pip
         pip install dbt-snowflake==1.8.*
 
     - name: dbt deps
+      if: steps.pr.outputs.skip == 'false'
       run: dbt deps
 
     - name: dbt build (staging schema, standard + heavier tests)
+      if: steps.pr.outputs.skip == 'false'
       run: |
         dbt build --target ci \
           --select "state:modified+" \
@@ -96,12 +114,13 @@ jobs:
       # exists yet (see 04-deploy-production.yml, which publishes one).
 
     - name: dbt test (freshness, accepted values, relationships)
+      if: steps.pr.outputs.skip == 'false'
       run: dbt test --target ci --select "tag:heavy_validation" || true
       # `heavy_validation` is a suggested tag convention — tag your
       # freshness/accepted_values/relationship tests with it in schema.yml.
 
     - name: Report staging validation status
-      if: always()
+      if: always() && steps.pr.outputs.skip == 'false'
       uses: actions/github-script@v7
       with:
         script: |

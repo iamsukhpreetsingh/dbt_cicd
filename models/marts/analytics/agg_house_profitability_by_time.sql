@@ -1,7 +1,7 @@
 {{ config(materialized='table') }}
 
 -- Which haunted house time slots are most profitable and best-rated?
--- Grain: one row per (haunted_house, visit_hour)
+-- Grain: one row per 
 
 with feedback as (
     select * from {{ ref('stg_feedback__haunted_visitor_feedback') }}
