@@ -1,0 +1,55 @@
+name: "02b - Cleanup PR Schema"
+
+# Housekeeping companion to workflow 02: drops the PR_<n>_<user> schema
+# once the PR is closed (merged or abandoned), so temp schemas don't pile up.
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  drop-schema:
+    runs-on: ubuntu-latest
+    environment: dev
+    env:
+      SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+      SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+      SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
+      SNOWFLAKE_ROLE: ${{ vars.SNOWFLAKE_ROLE }}
+      SNOWFLAKE_DATABASE: ${{ vars.SNOWFLAKE_DATABASE }}
+      SNOWFLAKE_WAREHOUSE: ${{ vars.SNOWFLAKE_WAREHOUSE }}
+    steps:
+      - name: Install Snowflake CLI
+        run: pip install snowflake-connector-python
+
+      - name: Compute schema name
+        id: schema
+        run: |
+          RAW="PR_${{ github.event.pull_request.number }}_${{ github.event.pull_request.user.login }}"
+          CLEAN=$(echo "$RAW" | tr '[:lower:]-' '[:upper:]_' | tr -cd '[:alnum:]_')
+          echo "schema=$CLEAN" >> "$GITHUB_OUTPUT"
+
+      - name: Drop schema
+        env:
+          SCHEMA: ${{ steps.schema.outputs.schema }}
+        run: |
+          python - <<'PYEOF'
+          import os, snowflake.connector
+          conn = snowflake.connector.connect(
+              account=os.environ["SNOWFLAKE_ACCOUNT"],
+              user=os.environ["SNOWFLAKE_USER"],
+              password=os.environ.get("SNOWFLAKE_PASSWORD") or None,
+              private_key=os.environ.get("SNOWFLAKE_PRIVATE_KEY") or None,
+              role=os.environ["SNOWFLAKE_ROLE"],
+              warehouse=os.environ["SNOWFLAKE_WAREHOUSE"],
+              database=os.environ["SNOWFLAKE_DATABASE"],
+          )
+          cur = conn.cursor()
+          cur.execute(f'DROP SCHEMA IF EXISTS {os.environ["SCHEMA"]}')
+          print(f'Dropped schema {os.environ["SCHEMA"]}')
+          PYEOF

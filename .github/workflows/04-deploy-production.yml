@@ -1,0 +1,115 @@
+name: "04 - Deploy to Production"
+
+# Diagram steps 6-7: "Reviewer Approval + Merge to Main" -> "CD Triggers
+# Production Deployment". The PR review itself is enforced by a branch
+# protection rule on `main` (require 1+ approving review before merge —
+# configured in repo Settings, not in YAML). Once merged, this workflow
+# fires automatically. As defense-in-depth, the "production" GitHub
+# Environment below can ALSO require reviewers before the job is allowed
+# to run — effectively a second gate at deploy time.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "models/**"
+      - "macros/**"
+      - "seeds/**"
+      - "snapshots/**"
+      - "dbt_project.yml"
+      - "packages.yml"
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false   # never cancel a live prod deploy mid-flight
+
+permissions:
+  contents: write   # needed to push the dbt-prod-state branch
+
+jobs:
+  deploy-production:
+    name: dbt build + test (production)
+    runs-on: ubuntu-latest
+    environment: production     # <-- prod-scoped vars/secrets + optional required-reviewer gate
+    env:
+      DBT_TARGET: ci
+      DBT_PROFILES_DIR: ${{ github.workspace }}/profiles
+      SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+      SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+      SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
+      SNOWFLAKE_ROLE: ${{ vars.SNOWFLAKE_ROLE }}
+      SNOWFLAKE_DATABASE: ${{ vars.SNOWFLAKE_DATABASE }}
+      SNOWFLAKE_WAREHOUSE: ${{ vars.SNOWFLAKE_WAREHOUSE }}
+      SNOWFLAKE_SCHEMA: ${{ vars.SNOWFLAKE_SCHEMA }}
+      DBT_THREADS: ${{ vars.DBT_THREADS || '4' }}
+      # Comma-separated list of tags for models allowed to run automatically
+      # on every merge (e.g. "core,critical"). Leave empty to run everything
+      # matched by state:modified+.
+      PROD_AUTO_SELECT_TAGS: ${{ vars.PROD_AUTO_SELECT_TAGS }}
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout previous prod manifest (state branch)
+        continue-on-error: true
+        run: |
+          git fetch origin dbt-prod-state:dbt-prod-state 2>/dev/null || true
+          mkdir -p prod-manifest
+          git show dbt-prod-state:manifest.json > prod-manifest/manifest.json 2>/dev/null || echo "No prior manifest found — will do a full build."
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dbt
+        run: |
+          python -m pip install --upgrade pip
+          pip install dbt-snowflake==1.8.*
+
+      - name: dbt deps
+        run: dbt deps
+
+      - name: Build model selector
+        id: selector
+        run: |
+          if [ -f prod-manifest/manifest.json ]; then
+            BASE="--select state:modified+ --defer --state prod-manifest"
+          else
+            BASE=""
+          fi
+          if [ -n "$PROD_AUTO_SELECT_TAGS" ]; then
+            TAGS=$(echo "$PROD_AUTO_SELECT_TAGS" | tr ',' '\n' | sed 's/^/tag:/' | paste -sd, -)
+            echo "select=$BASE --select $TAGS" >> "$GITHUB_OUTPUT"
+          else
+            echo "select=$BASE" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: dbt build (models + tests together, controlled permissions)
+        run: dbt build --target ci ${{ steps.selector.outputs.select }}
+
+      - name: Save new manifest as prod state baseline
+        if: success()
+        run: |
+          cp target/manifest.json ./manifest.json
+          git config user.name "dbt-cicd-bot"
+          git config user.email "dbt-cicd-bot@users.noreply.github.com"
+          git checkout -B dbt-prod-state
+          git add manifest.json
+          git commit -m "chore: update prod manifest state [skip ci]" || echo "No changes to commit"
+          git push origin dbt-prod-state --force
+
+      - name: Save build outputs as artifact (for docs + observability jobs)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dbt-prod-artifacts
+          path: |
+            target/manifest.json
+            target/run_results.json
+          retention-days: 14
