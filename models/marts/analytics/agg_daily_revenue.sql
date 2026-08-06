@@ -26,7 +26,12 @@ select
         when coalesce(r.unique_visitors, 0) > 0
             then round(r.total_revenue / r.unique_visitors, 2)
         else 0
-    end                              as revenue_per_visitor
+    end                              as revenue_per_visitor,
+    case
+        when coalesce(r.tickets_sold, 0) > 0
+            then round(r.total_revenue / r.tickets_sold, 2)
+        else 0
+    end                              as avg_ticket_price
 from date_dim d
 left join daily r on d.date_day = r.visit_date
 where d.date_day between '2024-01-01' and current_date()
