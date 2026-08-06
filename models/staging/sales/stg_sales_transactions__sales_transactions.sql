@@ -4,7 +4,7 @@ with source as (
     select * from {{ source('sales_transactions', 'sales_transactions') }}
 ),
 
-renamed as (
+renamed1 as (
     select
         transaction_id,
         customer_id,
@@ -19,4 +19,4 @@ renamed as (
     from source
 )
 
-select * from renamed
+select * from renamed1
