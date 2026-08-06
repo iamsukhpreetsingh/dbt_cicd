@@ -91,9 +91,9 @@ enriched as (
 
         case
             when c.is_vip_member = false
-                and c.loyalty_points >= 400                         then 'VIP Upgrade'
+                and c.loyalty_points >= 400                         then 'VIPUpgrade'
             when c.marketing_opt_in = true
-                and c.is_vip_member = false                         then 'Premium Pass'
+                and c.is_vip_member = false                         then 'PremiumPass'
             else 'None'
         end                                                         as upsell_opportunity,
 

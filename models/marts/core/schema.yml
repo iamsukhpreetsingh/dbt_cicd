@@ -3,814 +3,806 @@ version: 2
 
 models:
 
-  - name: dim_customers
-    description: Customer dimension with segmentation, lifecycle, and retention attributes.
-    semantic_model:
-      enabled: true
-    agg_time_dimension: registration_date
-    columns:
-      - name: customer_id
-        description: Natural primary key for the customer account.
-        entity:
-          type: primary
-          name: customer
-        data_tests:
-          - unique
-          - not_null
-      - name: first_name
-        description: Customer's given name.
-        data_tests:
-          - not_null
-      - name: last_name
-        description: Customer's family name.
-        data_tests:
-          - not_null
-      - name: email
-        description: Customer email address.
-        data_tests:
-          - unique
-          - not_null
-      - name: is_valid_email
-        description: TRUE when email matches the standard email regex pattern.
-        data_tests:
-          - not_null
-      - name: phone
-        description: Customer contact phone number.
-      - name: address
-        description: Street address.
-      - name: city
-        description: City.
-      - name: state
-        description: State code.
-      - name: state_name
-        description: Full state name.
-      - name: zip_code
-        description: Postal zip code.
-      - name: age
-        description: Customer's current age in whole years.
-        data_tests:
-          - not_null
-      - name: gender
-        description: Gender.
-      - name: is_vip_member
-        description: VIP membership flag.
-        dimension:
-          type: categorical
-        data_tests:
-          - not_null
-      - name: marketing_opt_in
-        description: Marketing opt-in flag.
-      - name: preferred_scare_level
-        description: Proxy preferred scare level.
-        data_tests:
-          - not_null
-      - name: loyalty_points
-        description: Loyalty points.
-        data_tests:
-          - not_null
-      - name: registration_date
-        description: Date the customer account was first created.
-        granularity: day
-        dimension:
-          type: time
-        data_tests:
-          - not_null
-      - name: age_group
-        description: Demographic age cohort.
-        data_tests:
-          - not_null
-          - accepted_values:
-              arguments:
-                values: ['Under 18', '18-24', '25-34', '35-44', '45-54', '55+']
-      - name: loyalty_tier
-        description: Loyalty tier.
-        dimension:
-          type: categorical
-        data_tests:
-          - not_null
-          - accepted_values:
-              arguments:
-                values: ['Gold', 'Silver', 'Bronze']
-      - name: customer_value_segment
-        description: Combined VIP and loyalty segment.
-        dimension:
-          type: categorical
-        data_tests:
-          - not_null
-          - accepted_values:
-              arguments:
-                values: ['High Value', 'Mid Value', 'Standard']
-      - name: customer_lifecycle_stage
-        description: Tenure-based lifecycle stage.
-        data_tests:
-          - not_null
-          - accepted_values:
-              arguments:
-                values: ['New', 'Growing', 'Established']
-      - name: retention_risk_level
-        description: Churn risk proxy.
-        dimension:
-          type: categorical
-        data_tests:
-          - not_null
-          - accepted_values:
-              arguments:
-                values: ['High', 'Medium', 'Low']
-      - name: upsell_opportunity
-        description: Recommended upsell action.
-        data_tests:
-          - not_null
-          - accepted_values:
-              arguments:
-                values: ['VIP Upgrade', 'Premium Pass', 'None']
-      - name: created_at
-        description: Timestamp the customer account was created.
-        data_tests:
-          - not_null
-      - name: updated_at
-        description: Last update timestamp.
+- name: dim_customers
+  description: Customer dimension with segmentation, lifecycle, and retention attributes.
+  semantic_model:
+    enabled: true
+  agg_time_dimension: registration_date
+  columns:
+  - name: customer_id
+    description: Natural primary key for the customer account.
+    entity:
+      type: primary
+      name: customer
+    data_tests:
+    - unique
+    - not_null
+  - name: first_name
+    description: Customer's given name.
+    data_tests:
+    - not_null
+  - name: last_name
+    description: Customer's family name.
+    data_tests:
+    - not_null
+  - name: email
+    description: Customer email address.
+    data_tests:
+    - unique
+    - not_null
+  - name: is_valid_email
+    description: TRUE when email matches the standard email regex pattern.
+    data_tests:
+    - not_null
+  - name: phone
+    description: Customer contact phone number.
+  - name: address
+    description: Street address.
+  - name: city
+    description: City.
+  - name: state
+    description: State code.
+  - name: state_name
+    description: Full state name.
+  - name: zip_code
+    description: Postal zip code.
+  - name: age
+    description: Customer's current age in whole years.
+    data_tests:
+    - not_null
+  - name: gender
+    description: Gender.
+  - name: is_vip_member
+    description: VIP membership flag.
+    dimension:
+      type: categorical
+    data_tests:
+    - not_null
+  - name: marketing_opt_in
+    description: Marketing opt-in flag.
+  - name: preferred_scare_level
+    description: Proxy preferred scare level.
+    data_tests:
+    - not_null
+  - name: loyalty_points
+    description: Loyalty points.
+    data_tests:
+    - not_null
+  - name: registration_date
+    description: Date the customer account was first created.
+    granularity: day
+    dimension:
+      type: time
+    data_tests:
+    - not_null
+  - name: age_group
+    description: Demographic age cohort.
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values: [ 'Under 18', '18-24', '25-34', '35-44', '45-54', '55+' ]
+  - name: loyalty_tier
+    description: Loyalty tier.
+    dimension:
+      type: categorical
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values: [ 'Gold', 'Silver', 'Bronze' ]
+  - name: customer_value_segment
+    description: Combined VIP and loyalty segment.
+    dimension:
+      type: categorical
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values: [ 'HighValue', 'MidValue', 'Standard' ]
+  - name: customer_lifecycle_stage
+    description: Tenure-based lifecycle stage.
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values: [ 'New', 'Growing', 'Established' ]
+  - name: retention_risk_level
+    description: Churn risk proxy.
+    dimension:
+      type: categorical
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values: [ 'High', 'Medium', 'Low' ]
+  - name: upsell_opportunity
+    description: Recommended upsell action.
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values: [ 'VIPUpgrade', 'PremiumPass', 'None' ]
+  - name: created_at
+    description: Timestamp the customer account was created.
+    data_tests:
+    - not_null
+  - name: updated_at
+    description: Last update timestamp.
 
-  - name: dim_rides
-    description: >
-      Ride dimension enriched with ride-specific guest satisfaction metrics.
-      One row per `ride_id`.
+- name: dim_rides
+  description: >
+    Ride dimension enriched with ride-specific guest satisfaction metrics. One row per `ride_id`.
 
-      This dimension combines physical ride attributes with aggregated feedback coverage and
-      satisfaction measures so it can support both operational reporting and downstream
-      stakeholder-facing analytics.
-    columns:
-      - name: ride_key
-        description: Surrogate ride key.
-        data_tests:
-          - unique
-          - not_null
-      - name: ride_id
-        description: Natural primary key.
-        data_tests:
-          - unique
-          - not_null
-      - name: ride_name
-        description: Display name of the ride.
-        data_tests:
-          - not_null
-      - name: ride_type
-        description: Physical category.
-        data_tests:
-          - not_null
-      - name: min_height_cm
-        description: Minimum rider height requirement in centimetres.
-      - name: thrill_level
-        description: Operations-assigned thrill intensity.
-        data_tests:
-          - not_null
-          - accepted_values:
-              arguments:
-                values: ['low', 'medium', 'high', 'extreme']
-      - name: zone
-        description: Park zone.
-        data_tests:
-          - not_null
-      - name: is_haunted
-        description: Haunted flag.
-        data_tests:
-          - not_null
-      - name: status
-        description: Current operating status of the ride.
-        data_tests:
-          - not_null
-          - accepted_values:
-              arguments:
-                values: ['active', 'maintenance', 'closed']
-      - name: opened_date
-        description: Date the ride opened to the public.
-        data_tests:
-          - not_null
-      - name: capacity_per_hour
-        description: Maximum riders per hour.
-        data_tests:
-          - not_null
-      - name: avg_wait_minutes
-        description: Rolling average wait time.
-      - name: total_reviews
-        description: Lifetime count of ride feedback rows.
-        data_tests:
-          - not_null
-      - name: avg_rating
-        description: Lifetime average satisfaction rating from ride feedback.
-        data_tests:
-          - not_null
-      - name: positive_reviews
-        description: Positive review count.
-        data_tests:
-          - not_null
-      - name: neutral_reviews
-        description: Neutral review count.
-        data_tests:
-          - not_null
-      - name: negative_reviews
-        description: Negative review count.
-        data_tests:
-          - not_null
-      - name: positive_review_pct
-        description: Positive review percentage.
-        data_tests:
-          - not_null
-      - name: has_reviews
-        description: TRUE when the ride has at least one feedback row.
-        data_tests:
-          - not_null
-      - name: review_count_band
-        description: Review volume band for the ride.
-        data_tests:
-          - not_null
-          - accepted_values:
-              arguments:
-                values: ['No Reviews', 'Single Review', 'Low Volume', 'Established']
+    This dimension combines physical ride attributes with aggregated feedback coverage and satisfaction measures so it can support both operational reporting and downstream stakeholder-facing analytics.
+  columns:
+  - name: ride_key
+    description: Surrogate ride key.
+    data_tests:
+    - unique
+    - not_null
+  - name: ride_id
+    description: Natural primary key.
+    data_tests:
+    - unique
+    - not_null
+  - name: ride_name
+    description: Display name of the ride.
+    data_tests:
+    - not_null
+  - name: ride_type
+    description: Physical category.
+    data_tests:
+    - not_null
+  - name: min_height_cm
+    description: Minimum rider height requirement in centimetres.
+  - name: thrill_level
+    description: Operations-assigned thrill intensity.
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values: [ 'low', 'medium', 'high', 'extreme' ]
+  - name: zone
+    description: Park zone.
+    data_tests:
+    - not_null
+  - name: is_haunted
+    description: Haunted flag.
+    data_tests:
+    - not_null
+  - name: status
+    description: Current operating status of the ride.
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values: [ 'active', 'maintenance', 'closed' ]
+  - name: opened_date
+    description: Date the ride opened to the public.
+    data_tests:
+    - not_null
+  - name: capacity_per_hour
+    description: Maximum riders per hour.
+    data_tests:
+    - not_null
+  - name: avg_wait_minutes
+    description: Rolling average wait time.
+  - name: total_reviews
+    description: Lifetime count of ride feedback rows.
+    data_tests:
+    - not_null
+  - name: avg_rating
+    description: Lifetime average satisfaction rating from ride feedback.
+    data_tests:
+    - not_null
+  - name: positive_reviews
+    description: Positive review count.
+    data_tests:
+    - not_null
+  - name: neutral_reviews
+    description: Neutral review count.
+    data_tests:
+    - not_null
+  - name: negative_reviews
+    description: Negative review count.
+    data_tests:
+    - not_null
+  - name: positive_review_pct
+    description: Positive review percentage.
+    data_tests:
+    - not_null
+  - name: has_reviews
+    description: TRUE when the ride has at least one feedback row.
+    data_tests:
+    - not_null
+  - name: review_count_band
+    description: Review volume band for the ride.
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values: [ 'No Reviews', 'Single Review', 'Low Volume', 'Established' ]
 
-  - name: dim_employees
-    description: Employee dimension with manager hierarchy and tenure metrics.
-    columns:
-      - name: employee_key
-        description: Surrogate employee key.
-        data_tests:
-          - unique
-          - not_null
-      - name: employee_id
-        description: Natural employee identifier.
-        data_tests:
-          - unique
-          - not_null
-      - name: full_name
-        description: Concatenated full name.
-        data_tests:
-          - not_null
-      - name: department
-        description: Business unit.
-        data_tests:
-          - not_null
-          - accepted_values:
-              arguments:
-                values: ['operations', 'food_beverage', 'merchandise', 'security', 'guest_services', 'maintenance']
-      - name: role
-        description: Job title.
-      - name: hire_date
-        description: Hire date.
-        data_tests:
-          - not_null
-      - name: hourly_rate
-        description: Current hourly pay rate in USD.
-        data_tests:
-          - not_null
-      - name: estimated_annual_salary
-        description: Derived annual salary estimate.
-        data_tests:
-          - not_null
-      - name: manager_id
-        description: Direct manager employee_id.
-      - name: manager_name
-        description: Full name of the direct manager.
-      - name: is_active
-        description: TRUE for currently employed staff.
-        data_tests:
-          - not_null
-      - name: zone_assignment
-        description: Primary park zone assignment.
-      - name: years_of_service
-        description: Years of service.
+- name: dim_employees
+  description: Employee dimension with manager hierarchy and tenure metrics.
+  columns:
+  - name: employee_key
+    description: Surrogate employee key.
+    data_tests:
+    - unique
+    - not_null
+  - name: employee_id
+    description: Natural employee identifier.
+    data_tests:
+    - unique
+    - not_null
+  - name: full_name
+    description: Concatenated full name.
+    data_tests:
+    - not_null
+  - name: department
+    description: Business unit.
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values: [ 'operations', 'food_beverage', 'merchandise', 'security', 'guest_services', 'maintenance' ]
+  - name: role
+    description: Job title.
+  - name: hire_date
+    description: Hire date.
+    data_tests:
+    - not_null
+  - name: hourly_rate
+    description: Current hourly pay rate in USD.
+    data_tests:
+    - not_null
+  - name: estimated_annual_salary
+    description: Derived annual salary estimate.
+    data_tests:
+    - not_null
+  - name: manager_id
+    description: Direct manager employee_id.
+  - name: manager_name
+    description: Full name of the direct manager.
+  - name: is_active
+    description: TRUE for currently employed staff.
+    data_tests:
+    - not_null
+  - name: zone_assignment
+    description: Primary park zone assignment.
+  - name: years_of_service
+    description: Years of service.
 
-  - name: dim_ticket_types
-    description: Ticket product type dimension.
-    columns:
-      - name: ticket_id
-        description: Surrogate integer PK.
-        data_tests:
-          - unique
-          - not_null
-      - name: ticket_type_name
-        description: Canonical ticket product name.
-        data_tests:
-          - unique
-          - not_null
-      - name: description
-        description: Always NULL. Not available in source.
-      - name: price
-        description: Representative price.
-        data_tests:
-          - not_null
-      - name: launch_date
-        description: Always NULL. Not tracked in source.
-      - name: includes_fast_pass
-        description: TRUE for qualifying ticket types.
-        data_tests:
-          - not_null
-      - name: includes_vip_benefits
-        description: TRUE for qualifying ticket types.
-        data_tests:
-          - not_null
-      - name: fear_level
-        description: Integer tier proxy.
-        data_tests:
-          - not_null
-      - name: duration_minutes
-        description: Expected visit duration.
-        data_tests:
-          - not_null
-      - name: house_category
-        description: Always NULL. Not available in source.
-      - name: created_at
-        description: Build timestamp.
-      - name: updated_at
-        description: Build timestamp.
+- name: dim_ticket_types
+  description: Ticket product type dimension.
+  columns:
+  - name: ticket_id
+    description: Surrogate integer PK.
+    data_tests:
+    - unique
+    - not_null
+  - name: ticket_type_name
+    description: Canonical ticket product name.
+    data_tests:
+    - unique
+    - not_null
+  - name: description
+    description: Always NULL. Not available in source.
+  - name: price
+    description: Representative price.
+    data_tests:
+    - not_null
+  - name: launch_date
+    description: Always NULL. Not tracked in source.
+  - name: includes_fast_pass
+    description: TRUE for qualifying ticket types.
+    data_tests:
+    - not_null
+  - name: includes_vip_benefits
+    description: TRUE for qualifying ticket types.
+    data_tests:
+    - not_null
+  - name: fear_level
+    description: Integer tier proxy.
+    data_tests:
+    - not_null
+  - name: duration_minutes
+    description: Expected visit duration.
+    data_tests:
+    - not_null
+  - name: house_category
+    description: Always NULL. Not available in source.
+  - name: created_at
+    description: Build timestamp.
+  - name: updated_at
+    description: Build timestamp.
 
-  - name: dim_transaction_flags
-    description: Junk dimension for low-cardinality transaction flag columns.
-    columns:
-      - name: transaction_flag_key
-        description: Surrogate primary key for the flag combination.
-        data_tests:
-          - unique
-          - not_null
-      - name: purchase_channel
-        description: Sales channel.
-        data_tests:
-          - not_null
-      - name: is_online
-        description: Online purchase flag.
-        data_tests:
-          - not_null
-      - name: discount_category
-        description: Discount bucket.
-        data_tests:
-          - not_null
-          - accepted_values:
-              arguments:
-                values: ['No Discount', 'Low Discount', 'Mid Discount', 'High Discount']
-      - name: same_day_visit
-        description: Same-day visit flag.
-        data_tests:
-          - not_null
-      - name: advance_purchase
-        description: Advance purchase flag.
-        data_tests:
-          - not_null
-      - name: visit_time_category
-        description: Time-of-day category.
-      - name: business_season
-        description: Business season.
-        data_tests:
-          - not_null
-          - accepted_values:
-              arguments:
-                values: ['Halloween Season', 'Summer', 'Winter', 'Spring', 'Fall']
-      - name: flag_combo_label
-        description: Human-readable combined label for the flag values.
-        data_tests:
-          - not_null
+- name: dim_transaction_flags
+  description: Junk dimension for low-cardinality transaction flag columns.
+  columns:
+  - name: transaction_flag_key
+    description: Surrogate primary key for the flag combination.
+    data_tests:
+    - unique
+    - not_null
+  - name: purchase_channel
+    description: Sales channel.
+    data_tests:
+    - not_null
+  - name: is_online
+    description: Online purchase flag.
+    data_tests:
+    - not_null
+  - name: discount_category
+    description: Discount bucket.
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values: [ 'No Discount', 'Low Discount', 'Mid Discount', 'High Discount' ]
+  - name: same_day_visit
+    description: Same-day visit flag.
+    data_tests:
+    - not_null
+  - name: advance_purchase
+    description: Advance purchase flag.
+    data_tests:
+    - not_null
+  - name: visit_time_category
+    description: Time-of-day category.
+  - name: business_season
+    description: Business season.
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values: [ 'Halloween Season', 'Summer', 'Winter', 'Spring', 'Fall' ]
+  - name: flag_combo_label
+    description: Human-readable combined label for the flag values.
+    data_tests:
+    - not_null
 
-  - name: fct_all_ticket_sales
-    description: All ticket sales from all channels in a single fact table.
-    columns:
-      - name: sale_id
-        description: Primary key for the ticket sale.
-        data_tests:
-          - unique
-          - not_null
-      - name: customer_id
-        description: FK to `dim_customers.customer_id`.
-        data_tests:
-          - not_null
-      - name: ticket_id
-        description: Raw ticket ID.
-        data_tests:
-          - not_null
-      - name: purchase_date
-        description: Date the ticket was purchased.
-        data_tests:
-          - not_null
-      - name: visit_date
-        description: Date the ticket is valid for park entry.
-        data_tests:
-          - not_null
-      - name: purchase_timestamp
-        description: Precise timestamp of purchase.
-      - name: ticket_price
-        description: Amount the customer paid in USD.
-        data_tests:
-          - not_null
-      - name: discount_percent
-        description: Discount as a percentage of base price.
-        data_tests:
-          - not_null
-      - name: discount_category
-        description: Discount category.
-        data_tests:
-          - not_null
-      - name: visit_hour
-        description: Hour of the park visit.
-      - name: payment_method
-        description: Payment method proxy.
-        data_tests:
-          - not_null
-      - name: purchase_channel
-        description: Sales channel.
-        data_tests:
-          - not_null
-      - name: is_online
-        description: TRUE for online purchases.
-        data_tests:
-          - not_null
-      - name: same_day_visit
-        description: TRUE when purchase_date = visit_date.
-        data_tests:
-          - not_null
-      - name: advance_purchase
-        description: TRUE when visit_date > purchase_date.
-        data_tests:
-          - not_null
-      - name: visit_time_category
-        description: Time-of-day category from `visit_time_of_day`.
-      - name: business_season
-        description: Business season.
-        data_tests:
-          - not_null
-      - name: created_at
-        description: Row creation timestamp.
-        data_tests:
-          - not_null
-      - name: updated_at
-        description: Last-updated timestamp.
-        data_tests:
-          - not_null
+- name: fct_all_ticket_sales
+  description: All ticket sales from all channels in a single fact table.
+  columns:
+  - name: sale_id
+    description: Primary key for the ticket sale.
+    data_tests:
+    - unique
+    - not_null
+  - name: customer_id
+    description: FK to `dim_customers.customer_id`.
+    data_tests:
+    - not_null
+  - name: ticket_id
+    description: Raw ticket ID.
+    data_tests:
+    - not_null
+  - name: purchase_date
+    description: Date the ticket was purchased.
+    data_tests:
+    - not_null
+  - name: visit_date
+    description: Date the ticket is valid for park entry.
+    data_tests:
+    - not_null
+  - name: purchase_timestamp
+    description: Precise timestamp of purchase.
+  - name: ticket_price
+    description: Amount the customer paid in USD.
+    data_tests:
+    - not_null
+  - name: discount_percent
+    description: Discount as a percentage of base price.
+    data_tests:
+    - not_null
+  - name: discount_category
+    description: Discount category.
+    data_tests:
+    - not_null
+  - name: visit_hour
+    description: Hour of the park visit.
+  - name: payment_method
+    description: Payment method proxy.
+    data_tests:
+    - not_null
+  - name: purchase_channel
+    description: Sales channel.
+    data_tests:
+    - not_null
+  - name: is_online
+    description: TRUE for online purchases.
+    data_tests:
+    - not_null
+  - name: same_day_visit
+    description: TRUE when purchase_date = visit_date.
+    data_tests:
+    - not_null
+  - name: advance_purchase
+    description: TRUE when visit_date > purchase_date.
+    data_tests:
+    - not_null
+  - name: visit_time_category
+    description: Time-of-day category from `visit_time_of_day`.
+  - name: business_season
+    description: Business season.
+    data_tests:
+    - not_null
+  - name: created_at
+    description: Row creation timestamp.
+    data_tests:
+    - not_null
+  - name: updated_at
+    description: Last-updated timestamp.
+    data_tests:
+    - not_null
 
-  - name: fct_haunted_house_tickets
-    description: Fact table for haunted house ticket sales.
-    columns:
-      - name: ticket_id
-        description: Natural primary key for the ticket record.
-        data_tests:
-          - unique
-          - not_null
-      - name: customer_id
-        description: FK to `dim_customers.customer_id`.
-        data_tests:
-          - not_null
-      - name: haunted_house_id
-        description: FK to haunted houses.
-        data_tests:
-          - not_null
-      - name: haunted_house_name
-        description: Display name of the haunted house.
-      - name: capacity
-        description: Max visitors per hour.
-      - name: fear_level
-        description: Fear level.
-        data_tests:
-          - not_null
-          - accepted_values:
-              arguments:
-                values: [2, 3, 4, 5]
-      - name: visit_date
-        description: Date of the haunted house visit.
-        data_tests:
-          - not_null
-      - name: ticket_price
-        description: Amount paid for the ticket in USD.
-        data_tests:
-          - not_null
-      - name: created_at
-        description: Timestamp of the original ticket purchase.
-      - name: updated_at
-        description: Set equal to `created_at`.
+- name: fct_haunted_house_tickets
+  description: Fact table for haunted house ticket sales.
+  columns:
+  - name: ticket_id
+    description: Natural primary key for the ticket record.
+    data_tests:
+    - unique
+    - not_null
+  - name: customer_id
+    description: FK to `dim_customers.customer_id`.
+    data_tests:
+    - not_null
+  - name: haunted_house_id
+    description: FK to haunted houses.
+    data_tests:
+    - not_null
+  - name: haunted_house_name
+    description: Display name of the haunted house.
+  - name: capacity
+    description: Max visitors per hour.
+  - name: fear_level
+    description: Fear level.
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values: [ 2, 3, 4, 5 ]
+  - name: visit_date
+    description: Date of the haunted house visit.
+    data_tests:
+    - not_null
+  - name: ticket_price
+    description: Amount paid for the ticket in USD.
+    data_tests:
+    - not_null
+  - name: created_at
+    description: Timestamp of the original ticket purchase.
+  - name: updated_at
+    description: Set equal to `created_at`.
 
-  - name: fct_sales
-    description: Fact table for in-park point-of-sale transactions.
-    semantic_model:
-      enabled: true
-    agg_time_dimension: visit_date
-    columns:
-      - name: sales_key
-        description: Surrogate sales key.
-        data_tests:
-          - unique
-          - not_null
-      - name: transaction_id
-        description: Natural PK from `raw_sales_transactions`.
-        entity:
-          type: primary
-          name: transaction
-        data_tests:
-          - unique
-          - not_null
-      - name: customer_id
-        description: FK to `dim_customers.customer_id`.
-        entity:
-          type: foreign
-          name: customer
-        data_tests:
-          - not_null
-          - relationships:
-              arguments:
-                to: ref('dim_customers')
-                field: customer_id
-      - name: visit_date
-        description: Date of the park visit.
-        granularity: day
-        dimension:
-          type: time
-        data_tests:
-          - not_null
-      - name: day_of_week
-        description: Day name from `dim_dates`.
-      - name: month_name
-        description: Month name from `dim_dates`.
-      - name: quarter
-        description: Calendar quarter.
-      - name: year
-        description: Calendar year.
-      - name: is_weekend
-        description: Weekend flag.
-        dimension:
-          type: categorical
-      - name: category
-        description: Product category.
-        dimension:
-          type: categorical
-        data_tests:
-          - not_null
-          - accepted_values:
-              arguments:
-                values: ['food', 'merchandise', 'game', 'photo']
-      - name: item_name
-        description: Name of the item sold.
-        data_tests:
-          - not_null
-      - name: quantity
-        description: Units purchased in this line item.
-        data_tests:
-          - not_null
-      - name: unit_price
-        description: Price per unit at time of sale.
-        data_tests:
-          - not_null
-      - name: total_amount
-        description: "quantity × unit_price"
-        data_tests:
-          - not_null
-          - dbt_expectations.expect_column_values_to_be_between:
-              arguments:
-                min_value: 0
-      - name: payment_method
-        description: Payment method.
-        dimension:
-          type: categorical
-        data_tests:
-          - not_null
-      - name: location
-        description: Outlet or stand name where the sale occurred.
-        dimension:
-          type: categorical
-        data_tests:
-          - not_null
-    metrics:
-      - name: total_sales
-        description: Total in-park POS sales amount.
-        type: simple
-        label: Total Sales
-        agg: sum
-        expr: total_amount
-      - name: total_items_sold
-        description: Total quantity of in-park POS items sold.
-        type: simple
-        label: Total Items Sold
-        agg: sum
-        expr: quantity
-      - name: total_transactions
-        description: Distinct count of POS transactions.
-        type: simple
-        label: Total Transactions
-        agg: count_distinct
-        expr: transaction_id
-      - name: average_order_value
-        description: Average POS sales per transaction.
-        type: derived
-        label: Average Order Value
-        expr: total_sales / nullif(total_transactions, 0)
-        input_metrics:
-          - name: total_sales
-          - name: total_transactions
+- name: fct_sales
+  description: Fact table for in-park point-of-sale transactions.
+  semantic_model:
+    enabled: true
+  agg_time_dimension: visit_date
+  columns:
+  - name: sales_key
+    description: Surrogate sales key.
+    data_tests:
+    - unique
+    - not_null
+  - name: transaction_id
+    description: Natural PK from `raw_sales_transactions`.
+    entity:
+      type: primary
+      name: transaction
+    data_tests:
+    - unique
+    - not_null
+  - name: customer_id
+    description: FK to `dim_customers.customer_id`.
+    entity:
+      type: foreign
+      name: customer
+    data_tests:
+    - not_null
+    - relationships:
+        arguments:
+          to: ref('dim_customers')
+          field: customer_id
+  - name: visit_date
+    description: Date of the park visit.
+    granularity: day
+    dimension:
+      type: time
+    data_tests:
+    - not_null
+  - name: day_of_week
+    description: Day name from `dim_dates`.
+  - name: month_name
+    description: Month name from `dim_dates`.
+  - name: quarter
+    description: Calendar quarter.
+  - name: year
+    description: Calendar year.
+  - name: is_weekend
+    description: Weekend flag.
+    dimension:
+      type: categorical
+  - name: category
+    description: Product category.
+    dimension:
+      type: categorical
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values: [ 'food', 'merchandise', 'game', 'photo' ]
+  - name: item_name
+    description: Name of the item sold.
+    data_tests:
+    - not_null
+  - name: quantity
+    description: Units purchased in this line item.
+    data_tests:
+    - not_null
+  - name: unit_price
+    description: Price per unit at time of sale.
+    data_tests:
+    - not_null
+  - name: total_amount
+    description: "quantity × unit_price"
+    data_tests:
+    - not_null
+    - dbt_expectations.expect_column_values_to_be_between:
+        arguments:
+          min_value: 0
+  - name: payment_method
+    description: Payment method.
+    dimension:
+      type: categorical
+    data_tests:
+    - not_null
+  - name: location
+    description: Outlet or stand name where the sale occurred.
+    dimension:
+      type: categorical
+    data_tests:
+    - not_null
+  metrics:
+  - name: total_sales
+    description: Total in-park POS sales amount.
+    type: simple
+    label: Total Sales
+    agg: sum
+    expr: total_amount
+  - name: total_items_sold
+    description: Total quantity of in-park POS items sold.
+    type: simple
+    label: Total Items Sold
+    agg: sum
+    expr: quantity
+  - name: total_transactions
+    description: Distinct count of POS transactions.
+    type: simple
+    label: Total Transactions
+    agg: count_distinct
+    expr: transaction_id
+  - name: average_order_value
+    description: Average POS sales per transaction.
+    type: derived
+    label: Average Order Value
+    expr: total_sales / nullif(total_transactions, 0)
+    input_metrics:
+    - name: total_sales
+    - name: total_transactions
 
-  - name: fct_visits
-    description: >
-      Fact table for customer park visits. One row per ticketed visit (`ticket_id`),
-      enriched with calendar attributes, matched in-park spend, booking behavior,
-      discount usage, and feedback participation.
+- name: fct_visits
+  description: >
+    Fact table for customer park visits. One row per ticketed visit (`ticket_id`), enriched with calendar attributes, matched in-park spend, booking behavior, discount usage, and feedback participation.
 
-      `in_park_spend` is matched on `(customer_id, visit_date)`. In the current seed-backed
-      dataset, no POS rows match ticket rows on that key combination, so this column is
-      presently 0 for all records. The model keeps the field because it is the correct
-      visit-level place for the metric when matching transaction data is available.
-    semantic_model:
-      enabled: true
-    agg_time_dimension: visit_date
-    config:
-      contract:
-        enforced: true
-    columns:
-      - name: visit_key
-        description: Surrogate visit key.
-        data_type: varchar
-        data_tests:
-          - unique
-          - not_null
-      - name: ticket_id
-        description: Natural PK from `raw_tickets`.
-        data_type: varchar
-        entity:
-          type: primary
-          name: visit
-        data_tests:
-          - unique
-          - not_null
-      - name: customer_id
-        description: FK to `dim_customers.customer_id`.
-        data_type: varchar
-        entity:
-          type: foreign
-          name: customer
-        data_tests:
-          - not_null
-          - relationships:
-              arguments:
-                to: ref('dim_customers')
-                field: customer_id
-      - name: visit_date
-        description: Date the guest visited the park.
-        data_type: date
-        granularity: day
-        dimension:
-          type: time
-        data_tests:
-          - not_null
-      - name: day_of_week
-        description: Day name from `dim_dates`.
-        data_type: varchar
-      - name: month_name
-        description: Month name from `dim_dates`.
-        data_type: varchar
-      - name: quarter
-        description: Calendar quarter.
-        data_type: number(2, 0)
-      - name: year
-        description: Calendar year.
-        data_type: number(4, 0)
-      - name: is_weekend
-        description: Weekend flag.
-        data_type: boolean
-        dimension:
-          type: categorical
-      - name: ticket_type
-        description: Ticket product type for this visit.
-        data_type: varchar
-        dimension:
-          type: categorical
-      - name: purchase_date
-        description: Date the ticket for the visit was purchased.
-        data_type: date
-      - name: purchase_channel
-        description: Channel used to purchase the ticket.
-        data_type: varchar
-      - name: booking_lead_days
-        description: Days between ticket purchase and visit date.
-        data_type: number(38, 0)
-        data_tests:
-          - not_null
-          - dbt_expectations.expect_column_values_to_be_between:
-              arguments:
-                min_value: 0
-      - name: is_same_day_visit
-        description: TRUE when `purchase_date = visit_date`.
-        data_type: boolean
-        data_tests:
-          - not_null
-      - name: is_advance_purchase
-        description: TRUE when the ticket was purchased at least 7 days before the visit.
-        data_type: boolean
-        data_tests:
-          - not_null
-      - name: is_discounted
-        description: TRUE when the ticket had a non-zero discount amount.
-        data_type: boolean
-        data_tests:
-          - not_null
-      - name: ticket_price
-        description: Entry ticket price paid in USD.
-        data_type: number(10, 2)
-      - name: in_park_spend
-        description: Total POS spend matched to the visit.
-        data_type: number(10, 2)
-      - name: total_visit_spend
-        description: "Combined visit revenue: `ticket_price + in_park_spend`."
+    `in_park_spend` is matched on `(customer_id, visit_date)`. In the current seed-backed dataset, no POS rows match ticket rows on that key combination, so this column is presently 0 for all records. The model keeps the field because it is the correct visit-level place for the metric when matching transaction data is available.
+  semantic_model:
+    enabled: true
+  agg_time_dimension: visit_date
+  config:
+    contract:
+      enforced: true
+  columns:
+  - name: visit_key
+    description: Surrogate visit key.
+    data_type: varchar
+    data_tests:
+    - unique
+    - not_null
+  - name: ticket_id
+    description: Natural PK from `raw_tickets`.
+    data_type: varchar
+    entity:
+      type: primary
+      name: visit
+    data_tests:
+    - unique
+    - not_null
+  - name: customer_id
+    description: FK to `dim_customers.customer_id`.
+    data_type: varchar
+    entity:
+      type: foreign
+      name: customer
+    data_tests:
+    - not_null
+    - relationships:
+        arguments:
+          to: ref('dim_customers')
+          field: customer_id
+  - name: visit_date
+    description: Date the guest visited the park.
+    data_type: date
+    granularity: day
+    dimension:
+      type: time
+    data_tests:
+    - not_null
+  - name: day_of_week
+    description: Day name from `dim_dates`.
+    data_type: varchar
+  - name: month_name
+    description: Month name from `dim_dates`.
+    data_type: varchar
+  - name: quarter
+    description: Calendar quarter.
+    data_type: number(2, 0)
+  - name: year
+    description: Calendar year.
+    data_type: number(4, 0)
+  - name: is_weekend
+    description: Weekend flag.
+    data_type: boolean
+    dimension:
+      type: categorical
+  - name: ticket_type
+    description: Ticket product type for this visit.
+    data_type: varchar
+    dimension:
+      type: categorical
+  - name: purchase_date
+    description: Date the ticket for the visit was purchased.
+    data_type: date
+  - name: purchase_channel
+    description: Channel used to purchase the ticket.
+    data_type: varchar
+  - name: booking_lead_days
+    description: Days between ticket purchase and visit date.
+    data_type: number(38, 0)
+    data_tests:
+    - not_null
+    - dbt_expectations.expect_column_values_to_be_between:
+        arguments:
+          min_value: 0
+  - name: is_same_day_visit
+    description: TRUE when `purchase_date = visit_date`.
+    data_type: boolean
+    data_tests:
+    - not_null
+  - name: is_advance_purchase
+    description: TRUE when the ticket was purchased at least 7 days before the visit.
+    data_type: boolean
+    data_tests:
+    - not_null
+  - name: is_discounted
+    description: TRUE when the ticket had a non-zero discount amount.
+    data_type: boolean
+    data_tests:
+    - not_null
+  - name: ticket_price
+    description: Entry ticket price paid in USD.
+    data_type: number(10, 2)
+  - name: in_park_spend
+    description: Total POS spend matched to the visit.
+    data_type: number(10, 2)
+  - name: total_visit_spend
+    description: "Combined visit revenue: `ticket_price + in_park_spend`."
 
-        data_type: number(10, 2)
-        data_tests:
-          - not_null
-          - dbt_expectations.expect_column_values_to_be_between:
-              arguments:
-                min_value: 0
-              config:
-                store_failures: true
-      - name: feedback_count
-        description: Number of matched feedback rows for the visit.
-        data_type: number(38, 0)
-        data_tests:
-          - not_null
-      - name: has_feedback
-        description: TRUE when at least one matched feedback row exists for the visit.
-        data_type: boolean
-        data_tests:
-          - not_null
-      - name: avg_rating
-        description: Average satisfaction rating across matched feedback for the visit.
-        data_type: number(5, 2)
-    metrics:
-      - name: total_visits
-        description: Distinct count of park visits.
-        type: simple
-        label: Total Visits
-        agg: count_distinct
-        expr: ticket_id
-      - name: total_visit_revenue
-        description: Total visit-level revenue including ticket and in-park spend.
-        type: simple
-        label: Total Visit Revenue
-        agg: sum
-        expr: total_visit_spend
-      - name: ticket_revenue
-        description: Total entry ticket revenue.
-        type: simple
-        label: Ticket Revenue
-        agg: sum
-        expr: ticket_price
-      - name: in_park_spend
-        description: Total in-park POS spend attributed to visits.
-        type: simple
-        label: In-Park Spend
-        agg: sum
-        expr: in_park_spend
-      - name: average_revenue_per_visit
-        description: Average revenue per park visit.
-        type: derived
-        label: Revenue Per Visit
-        expr: total_visit_revenue / nullif(total_visits, 0)
-        input_metrics:
-          - name: total_visit_revenue
-          - name: total_visits
+    data_type: number(10, 2)
+    data_tests:
+    - not_null
+    - dbt_expectations.expect_column_values_to_be_between:
+        arguments:
+          min_value: 0
+        config:
+          store_failures: true
+  - name: feedback_count
+    description: Number of matched feedback rows for the visit.
+    data_type: number(38, 0)
+    data_tests:
+    - not_null
+  - name: has_feedback
+    description: TRUE when at least one matched feedback row exists for the visit.
+    data_type: boolean
+    data_tests:
+    - not_null
+  - name: avg_rating
+    description: Average satisfaction rating across matched feedback for the visit.
+    data_type: number(5, 2)
+  metrics:
+  - name: total_visits
+    description: Distinct count of park visits.
+    type: simple
+    label: Total Visits
+    agg: count_distinct
+    expr: ticket_id
+  - name: total_visit_revenue
+    description: Total visit-level revenue including ticket and in-park spend.
+    type: simple
+    label: Total Visit Revenue
+    agg: sum
+    expr: total_visit_spend
+  - name: ticket_revenue
+    description: Total entry ticket revenue.
+    type: simple
+    label: Ticket Revenue
+    agg: sum
+    expr: ticket_price
+  - name: in_park_spend
+    description: Total in-park POS spend attributed to visits.
+    type: simple
+    label: In-Park Spend
+    agg: sum
+    expr: in_park_spend
+  - name: average_revenue_per_visit
+    description: Average revenue per park visit.
+    type: derived
+    label: Revenue Per Visit
+    expr: total_visit_revenue / nullif(total_visits, 0)
+    input_metrics:
+    - name: total_visit_revenue
+    - name: total_visits
 
-  - name: fct_sales_with_junk_key
-    description: Variant of `fct_all_ticket_sales` using a junk dimension for flags.
-    columns:
-      - name: sale_id
-        description: PK for the ticket sale.
-        data_tests:
-          - unique
-          - not_null
-      - name: customer_id
-        description: FK to `dim_customers.customer_id`.
-        data_tests:
-          - not_null
-      - name: ticket_id
-        description: Raw ticket ID from `raw_tickets`.
-        data_tests:
-          - not_null
-      - name: purchase_date
-        description: Date the ticket was purchased.
-        data_tests:
-          - not_null
-      - name: visit_date
-        description: Date the ticket is valid for park entry.
-        data_tests:
-          - not_null
-      - name: transaction_flag_key
-        description: FK to `dim_transaction_flags.transaction_flag_key`.
-      - name: ticket_price
-        description: Amount paid for the ticket in USD.
-        data_tests:
-          - not_null
-      - name: discount_percent
-        description: Discount as a percentage of base price.
-        data_tests:
-          - not_null
-      - name: visit_hour
-        description: Hour of the visit.
-      - name: payment_method
-        description: Hardcoded payment method proxy.
-        data_tests:
-          - not_null
-      - name: created_at
-        description: Row creation timestamp.
-        data_tests:
-          - not_null
-      - name: updated_at
-        description: Last-updated timestamp.
-        data_tests:
-          - not_null
+- name: fct_sales_with_junk_key
+  description: Variant of `fct_all_ticket_sales` using a junk dimension for flags.
+  columns:
+  - name: sale_id
+    description: PK for the ticket sale.
+    data_tests:
+    - unique
+    - not_null
+  - name: customer_id
+    description: FK to `dim_customers.customer_id`.
+    data_tests:
+    - not_null
+  - name: ticket_id
+    description: Raw ticket ID from `raw_tickets`.
+    data_tests:
+    - not_null
+  - name: purchase_date
+    description: Date the ticket was purchased.
+    data_tests:
+    - not_null
+  - name: visit_date
+    description: Date the ticket is valid for park entry.
+    data_tests:
+    - not_null
+  - name: transaction_flag_key
+    description: FK to `dim_transaction_flags.transaction_flag_key`.
+  - name: ticket_price
+    description: Amount paid for the ticket in USD.
+    data_tests:
+    - not_null
+  - name: discount_percent
+    description: Discount as a percentage of base price.
+    data_tests:
+    - not_null
+  - name: visit_hour
+    description: Hour of the visit.
+  - name: payment_method
+    description: Hardcoded payment method proxy.
+    data_tests:
+    - not_null
+  - name: created_at
+    description: Row creation timestamp.
+    data_tests:
+    - not_null
+  - name: updated_at
+    description: Last-updated timestamp.
+    data_tests:
+    - not_null
