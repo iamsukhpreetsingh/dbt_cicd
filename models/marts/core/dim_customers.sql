@@ -70,8 +70,8 @@ enriched as (
         end                                                         as loyalty_tier,
 
         case
-            when c.is_vip_member and c.loyalty_points >= 1000      then 'High Value'
-            when c.is_vip_member or  c.loyalty_points >= 500       then 'Mid Value'
+            when c.is_vip_member and c.loyalty_points >= 1000      then 'HighValue'
+            when c.is_vip_member or  c.loyalty_points >= 500       then 'MidValue'
             else 'Standard'
         end                                                         as customer_value_segment,
 
