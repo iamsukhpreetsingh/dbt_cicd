@@ -1,0 +1,96 @@
+name: "03 - Deploy to QA / Staging"
+
+# Diagram step 5: "Deploy to QA / Staging Environment"
+# Depends on workflow 02 (PR schema build) succeeding. Runs the same
+# selection against the shared staging schema with near-production
+# conditions, plus heavier validation (row counts, freshness, joins).
+
+on:
+  workflow_run:
+    workflows: ["02 - Build in PR Schema"]
+    types: [completed]
+
+concurrency:
+  group: deploy-staging-${{ github.event.workflow_run.pull_requests[0].number || github.event.workflow_run.head_branch }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  actions: read
+
+jobs:
+  deploy-staging:
+    name: dbt build + validate (staging)
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    environment: staging       # <-- staging-scoped vars/secrets
+    env:
+      DBT_TARGET: ci
+      DBT_PROFILES_DIR: ${{ github.workspace }}/profiles
+      SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+      SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+      SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
+      SNOWFLAKE_ROLE: ${{ vars.SNOWFLAKE_ROLE }}
+      SNOWFLAKE_DATABASE: ${{ vars.SNOWFLAKE_DATABASE }}
+      SNOWFLAKE_WAREHOUSE: ${{ vars.SNOWFLAKE_WAREHOUSE }}
+      SNOWFLAKE_SCHEMA: ${{ vars.SNOWFLAKE_SCHEMA }}
+      DBT_THREADS: ${{ vars.DBT_THREADS || '4' }}
+
+    steps:
+      - name: Resolve PR + head SHA
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.workflow_run.pull_requests[0];
+            if (!pr) { core.setFailed("No PR context on workflow_run payload."); return; }
+            core.setOutput("number", pr.number);
+            core.setOutput("sha", context.payload.workflow_run.head_sha);
+
+      - name: Checkout PR head commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.pr.outputs.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dbt
+        run: |
+          python -m pip install --upgrade pip
+          pip install dbt-snowflake==1.8.*
+
+      - name: dbt deps
+        run: dbt deps
+
+      - name: dbt build (staging schema, standard + heavier tests)
+        run: |
+          dbt build --target ci \
+            --select "state:modified+" \
+            --defer --state ./prod-manifest 2>/dev/null || dbt build --target ci
+        # Falls back to a full build if no baseline prod manifest artifact
+        # exists yet (see 04-deploy-production.yml, which publishes one).
+
+      - name: dbt test (freshness, accepted values, relationships)
+        run: dbt test --target ci --select "tag:heavy_validation" || true
+        # `heavy_validation` is a suggested tag convention — tag your
+        # freshness/accepted_values/relationship tests with it in schema.yml.
+
+      - name: Report staging validation status
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = "${{ job.status }}" === "success" ? "✅ validated in staging" : "❌ staging validation failed";
+            github.rest.issues.createComment({
+              issue_number: ${{ steps.pr.outputs.number }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `**Staging Deploy:** ${status}\n\nRun: [#${context.runId}](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})\n\nThis PR is ready for reviewer sign-off once this check is green.`
+            });

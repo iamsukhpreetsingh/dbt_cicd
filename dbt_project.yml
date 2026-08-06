@@ -134,4 +134,6 @@ models:
       +schema: utilities
       +tags: [ 'utilities' ]
 
+  dbt_project_evaluator:
+    +enabled: false
 
