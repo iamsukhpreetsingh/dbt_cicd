@@ -44,7 +44,12 @@ select
     round(avg(total_visits), 2) as avg_visits,
     round(avg(avg_spend_per_visit), 2) as avg_spend_per_visit,
     round(sum(lifetime_total_spend), 2) as total_segment_revenue,
-    round(sum(lifetime_total_spend) / nullif(count(customer_id), 0), 2) as clv
+    round(sum(lifetime_total_spend) / nullif(count(customer_id), 0), 2) as clv,
+    round(sum(lifetime_ticket_revenue), 2) as total_segment_ticket_revenue,
+    round(sum(lifetime_in_park_spend), 2) as total_segment_in_park_spend,
+    max(lifetime_total_spend) as max_customer_spend,
+    min(lifetime_total_spend) as min_customer_spend,
+    round(percentile_cont(0.5) within group (order by lifetime_total_spend), 2) as median_customer_spend
 from joined
 group by 1, 2
 order by clv desc

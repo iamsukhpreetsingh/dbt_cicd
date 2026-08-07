@@ -119,6 +119,24 @@ models:
     - dbt_expectations.expect_column_values_to_be_between:
         arguments:
           min_value: 0
+  - name: total_segment_ticket_revenue
+    description: Total ticket revenue across all customers in this segment.
+    data_tests:
+    - not_null
+  - name: total_segment_in_park_spend
+    description: Total in-park spend across all customers in this segment.
+    data_tests:
+    - not_null
+  - name: max_customer_spend
+    description: Maximum lifetime spend by any single customer in this segment.
+    data_tests:
+    - not_null
+  - name: min_customer_spend
+    description: Minimum lifetime spend by any single customer in this segment.
+    data_tests:
+    - not_null
+  - name: median_customer_spend
+    description: Median lifetime spend across customers in this segment.
 
 - name: customer_revenue_retention_summary
   description: >
