@@ -254,6 +254,21 @@ models:
     - accepted_values:
         arguments:
           values: [ 'High', 'Medium', 'Low' ]
+  - name: visit_frequency_tier
+    description: Tier based on total visit count (Very Frequent, Frequent, Returning, One-Time).
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values: [ 'Very Frequent', 'Frequent', 'Returning', 'One-Time' ]
+  - name: discount_usage_pct
+    description: Percentage of visits that used a discount.
+    data_tests:
+    - not_null
+  - name: has_same_day_purchases
+    description: Whether customer has purchased tickets on same day as visit.
+  - name: advance_purchase_pct
+    description: Percentage of visits purchased in advance (7+ days).
 
 - name: agg_ride_popularity
   description: >
