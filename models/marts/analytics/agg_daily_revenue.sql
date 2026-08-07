@@ -40,7 +40,9 @@ select
                 / lag(r.total_revenue, 1) over (order by d.date_day) * 100
                 , 2)
         else 0
-    end                              as revenue_change_pct
+    end                              as revenue_change_pct,
+    round(avg(r.total_revenue) over (order by d.date_day rows between 6 preceding and current row), 2) as revenue_7day_avg,
+    count(r.visit_date) over (order by d.date_day rows between 6 preceding and current row) as days_with_data_7d
 from date_dim d
 left join daily r on d.date_day = r.visit_date
 where d.date_day between '2024-01-01' and current_date()

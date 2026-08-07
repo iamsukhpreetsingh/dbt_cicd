@@ -73,6 +73,14 @@ models:
     description: Total revenue from the previous day (lag of total_revenue). NULL for first date.
   - name: revenue_change_pct
     description: Percentage change in revenue compared to previous day. NULL for first date.
+  - name: revenue_7day_avg
+    description: Rolling 7-day average of total revenue.
+    data_tests:
+    - not_null
+  - name: days_with_data_7d
+    description: Number of days with revenue data in the 7-day rolling window.
+    data_tests:
+    - not_null
 
 - name: agg_customer_lifetime_value
   description: Customer lifetime value aggregated by loyalty tier and customer value segment.
