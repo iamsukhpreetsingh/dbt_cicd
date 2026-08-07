@@ -70,13 +70,9 @@ models:
     data_tests:
     - not_null
   - name: previous_day_revenue
-    description: Total revenue from the previous day (lag of total_revenue).
-    data_tests:
-    - not_null
+    description: Total revenue from the previous day (lag of total_revenue). NULL for first date.
   - name: revenue_change_pct
-    description: Percentage change in revenue compared to previous day.
-    data_tests:
-    - not_null
+    description: Percentage change in revenue compared to previous day. NULL for first date.
 
 - name: agg_customer_lifetime_value
   description: Customer lifetime value aggregated by loyalty tier and customer value segment.
