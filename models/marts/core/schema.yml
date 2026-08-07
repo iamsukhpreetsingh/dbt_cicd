@@ -438,6 +438,18 @@ models:
     description: Last-updated timestamp.
     data_tests:
     - not_null
+  - name: processing_fee
+    description: Processing fee (5% of ticket_price).
+    data_type: number(10, 2)
+  - name: net_ticket_price
+    description: Net ticket price after discount.
+    data_type: number(10, 2)
+  - name: price_tier
+    description: Price tier based on ticket_price (VIP, Premium, Standard).
+    data_type: varchar
+  - name: channel_discount_segment
+    description: Combined channel and discount segment.
+    data_type: varchar
 
 - name: fct_haunted_house_tickets
   description: Fact table for haunted house ticket sales.
