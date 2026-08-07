@@ -1,3 +1,106 @@
+# name: "02 - Build in PR Schema"
+
+# # Diagram step 4: "Build in a Temporary / PR Schema"
+# # Depends on workflow 01 finishing successfully (workflow_run chaining).
+# # Creates a one-off schema like PR_123_JDOE and runs a full dbt build there
+# # so nothing touches shared dev/staging tables.
+
+# on:
+#   workflow_run:
+#     workflows: [ "01 - CI Checks (PR)" ]
+#     types: [ completed ]
+
+# concurrency:
+#   group: pr-schema-build-${{ github.event.workflow_run.pull_requests[0].number || github.event.workflow_run.head_branch }}
+#   cancel-in-progress: true
+
+# permissions:
+#   contents: read
+#   pull-requests: write
+#   actions: read # needed to read the triggering workflow_run's context
+
+# jobs:
+#   build-pr-schema:
+#     name: dbt build (ephemeral PR schema)
+#     if: github.event.workflow_run.conclusion == 'success'
+#     runs-on: ubuntu-latest
+#     environment: dev
+#     env:
+#       DBT_TARGET: ci
+#       DBT_PROFILES_DIR: ${{ github.workspace }}/profiles
+#       SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+#       SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+#       SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+#       SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
+#       SNOWFLAKE_ROLE: ${{ vars.SNOWFLAKE_ROLE }}
+#       SNOWFLAKE_DATABASE: ${{ vars.SNOWFLAKE_DATABASE }}
+#       SNOWFLAKE_WAREHOUSE: ${{ vars.SNOWFLAKE_WAREHOUSE }}
+#       SNOWFLAKE_SCHEMA: ${{ vars.SNOWFLAKE_SCHEMA }}
+#       DBT_THREADS: ${{ vars.DBT_THREADS || '4' }}
+
+#     steps:
+#     - name: Resolve PR number and head SHA
+#       id: pr
+#       uses: actions/github-script@v7
+#       with:
+#         script: |
+#           // Only reliable for same-repo PRs (not forks) — see setup notes.
+#           const runs = context.payload.workflow_run;
+#           const pr = runs.pull_requests[0];
+#           if (!pr) {
+#             core.setFailed("Could not resolve PR from workflow_run payload. Fork PRs need the pull_request_target pattern documented in SETUP_GUIDE.md.");
+#             return;
+#           }
+#           core.setOutput("number", pr.number);
+#           core.setOutput("sha", runs.head_sha);
+
+#     - name: Checkout PR head commit
+#       uses: actions/checkout@v4
+#       with:
+#         ref: ${{ steps.pr.outputs.sha }}
+#         fetch-depth: 0
+
+#     - name: Set up Python
+#       uses: actions/setup-python@v5
+#       with:
+#         python-version: "3.11"
+#         cache: "pip"
+
+#     - name: Install dbt
+#       run: |
+#         python -m pip install --upgrade pip
+#         pip install "dbt-snowflake>=1.9,<2.0"
+
+#     - name: dbt deps
+#       run: dbt deps
+
+#     - name: Compute PR schema name
+#       id: schema
+#       run: |
+#         RAW="PR_${{ steps.pr.outputs.number }}_${GITHUB_ACTOR}"
+#         CLEAN=$(echo "$RAW" | tr '[:lower:]-' '[:upper:]_' | tr -cd '[:alnum:]_')
+#         echo "schema=$CLEAN" >> "$GITHUB_OUTPUT"
+
+#     - name: dbt build (full build, isolated schema)
+#       env:
+#         DBT_PR_SCHEMA: ${{ steps.schema.outputs.schema }}
+#       run: dbt build --target ci --full-refresh
+
+#     - name: Comment schema + build status on PR
+#       if: always()
+#       uses: actions/github-script@v7
+#       with:
+#         script: |
+#           const status = "${{ job.status }}" === "success" ? "✅ built" : "❌ build failed";
+#           const schema = "${{ steps.schema.outputs.schema }}";
+#           const body = `**PR Schema Build:** ${status}\n\nModels + tests were run into \`${schema}\` in the dev database so you can query them directly to sanity-check before merge.\n\nRun: [#${context.runId}](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
+#           github.rest.issues.createComment({
+#             issue_number: ${{ steps.pr.outputs.number }},
+#             owner: context.repo.owner,
+#             repo: context.repo.repo,
+#             body
+#           });
+
 name: "02 - Build in PR Schema"
 
 # Diagram step 4: "Build in a Temporary / PR Schema"
@@ -10,8 +113,20 @@ on:
     workflows: [ "01 - CI Checks (PR)" ]
     types: [ completed ]
 
+# NOTE: group by head_branch only, never by pull_requests[0].number.
+# workflow_run.pull_requests[0] is populated by GitHub's own background
+# indexing of "which open PR points at this branch" and is known to come
+# back empty intermittently right after the upstream run completes — even
+# for a genuine same-repo PR. Grouping on `pull_requests[0].number ||
+# head_branch` meant the SAME PR could land in a different concurrency
+# group on different pushes (sometimes the PR-number key, sometimes the
+# branch-name key), so cancel-in-progress silently failed to cancel a
+# stale run — an older run could finish AFTER a newer one and trigger
+# workflow 3 with a stale head_sha, making staging appear to build the
+# previous commit instead of the latest one. head_branch is always
+# present and stable, so it's the only safe grouping key here.
 concurrency:
-  group: pr-schema-build-${{ github.event.workflow_run.pull_requests[0].number || github.event.workflow_run.head_branch }}
+  group: pr-schema-build-${{ github.event.workflow_run.head_branch }}
   cancel-in-progress: true
 
 permissions:
@@ -39,42 +154,71 @@ jobs:
       DBT_THREADS: ${{ vars.DBT_THREADS || '4' }}
 
     steps:
+    # Same reliable-resolution pattern used in workflow 3: query the API
+    # for the head branch's open PR instead of trusting
+    # workflow_run.pull_requests[0], which is intermittently empty. A
+    # post-merge / non-PR run (head_branch == default branch, or no open
+    # PR found) is treated as a legitimate skip, not a hard failure — a
+    # setFailed here would have made the whole job's conclusion "failure",
+    # which (combined with the concurrency fix above) is no longer needed
+    # as a safety net, but is still the correct behavior on its own merits.
     - name: Resolve PR number and head SHA
       id: pr
       uses: actions/github-script@v7
       with:
         script: |
-          // Only reliable for same-repo PRs (not forks) — see setup notes.
-          const runs = context.payload.workflow_run;
-          const pr = runs.pull_requests[0];
-          if (!pr) {
-            core.setFailed("Could not resolve PR from workflow_run payload. Fork PRs need the pull_request_target pattern documented in SETUP_GUIDE.md.");
+          const branch = context.payload.workflow_run.head_branch;
+          const sha = context.payload.workflow_run.head_sha;
+
+          if (branch === context.payload.repository.default_branch) {
+            core.notice(`Workflow 01 ran on default branch (${branch}) — not a PR build, skipping.`);
+            core.setOutput("skip", "true");
             return;
           }
-          core.setOutput("number", pr.number);
-          core.setOutput("sha", runs.head_sha);
+
+          const { data: prs } = await github.rest.pulls.list({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            head: `${context.repo.owner}:${branch}`,
+            state: "open",
+          });
+
+          if (prs.length === 0) {
+            core.notice(`No open PR found for branch ${branch} — skipping.`);
+            core.setOutput("skip", "true");
+            return;
+          }
+
+          core.setOutput("skip", "false");
+          core.setOutput("number", prs[0].number);
+          core.setOutput("sha", sha);
 
     - name: Checkout PR head commit
+      if: steps.pr.outputs.skip == 'false'
       uses: actions/checkout@v4
       with:
         ref: ${{ steps.pr.outputs.sha }}
         fetch-depth: 0
 
     - name: Set up Python
+      if: steps.pr.outputs.skip == 'false'
       uses: actions/setup-python@v5
       with:
         python-version: "3.11"
         cache: "pip"
 
     - name: Install dbt
+      if: steps.pr.outputs.skip == 'false'
       run: |
         python -m pip install --upgrade pip
         pip install "dbt-snowflake>=1.9,<2.0"
 
     - name: dbt deps
+      if: steps.pr.outputs.skip == 'false'
       run: dbt deps
 
     - name: Compute PR schema name
+      if: steps.pr.outputs.skip == 'false'
       id: schema
       run: |
         RAW="PR_${{ steps.pr.outputs.number }}_${GITHUB_ACTOR}"
@@ -82,21 +226,35 @@ jobs:
         echo "schema=$CLEAN" >> "$GITHUB_OUTPUT"
 
     - name: dbt build (full build, isolated schema)
+      if: steps.pr.outputs.skip == 'false'
       env:
         DBT_PR_SCHEMA: ${{ steps.schema.outputs.schema }}
       run: dbt build --target ci --full-refresh
 
+    # Values passed through `env:` rather than interpolated directly into
+    # the script body — an unset step output interpolates to nothing at
+    # the YAML level BEFORE the JS is parsed, which can silently turn
+    # valid-looking code into a syntax error (e.g. `issue_number: ,`) on
+    # any run where steps.pr.outputs.number was never set.
     - name: Comment schema + build status on PR
-      if: always()
+      if: always() && steps.pr.outputs.skip == 'false'
       uses: actions/github-script@v7
+      env:
+        PR_NUMBER: ${{ steps.pr.outputs.number }}
+        SCHEMA: ${{ steps.schema.outputs.schema }}
+        JOB_STATUS: ${{ job.status }}
       with:
         script: |
-          const status = "${{ job.status }}" === "success" ? "✅ built" : "❌ build failed";
-          const schema = "${{ steps.schema.outputs.schema }}";
+          const prNumber = process.env.PR_NUMBER;
+          const schema = process.env.SCHEMA;
+          const status = process.env.JOB_STATUS === "success" ? "✅ built" : "❌ build failed";
           const body = `**PR Schema Build:** ${status}\n\nModels + tests were run into \`${schema}\` in the dev database so you can query them directly to sanity-check before merge.\n\nRun: [#${context.runId}](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
-          github.rest.issues.createComment({
-            issue_number: ${{ steps.pr.outputs.number }},
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body
-          });
+
+          if (prNumber) {
+            github.rest.issues.createComment({
+              issue_number: Number(prNumber),
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });
+          }
