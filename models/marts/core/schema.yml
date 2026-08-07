@@ -724,6 +724,18 @@ models:
   - name: avg_rating
     description: Average satisfaction rating across matched feedback for the visit.
     data_type: number(5, 2)
+  - name: booking_category
+    description: Category based on booking lead time (Same Day, Last Minute, This Week, Planned).
+    data_type: varchar
+  - name: ticket_tier
+    description: Ticket pricing tier based on ticket_price (Premium, Standard, Basic).
+    data_type: varchar
+  - name: estimated_commission
+    description: Estimated commission (10% of ticket_price).
+    data_type: number(10, 2)
+  - name: has_add_on_purchases
+    description: Whether customer made in-park add-on purchases.
+    data_type: varchar
   metrics:
   - name: total_visits
     description: Distinct count of park visits.

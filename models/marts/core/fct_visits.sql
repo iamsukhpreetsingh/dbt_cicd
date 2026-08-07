@@ -30,6 +30,22 @@ select
     v.total_visit_spend,
     v.feedback_count,
     v.has_feedback,
-    v.avg_rating
+    v.avg_rating,
+    case
+        when v.booking_lead_days = 0 then 'Same Day'
+        when v.booking_lead_days <= 3 then 'Last Minute'
+        when v.booking_lead_days <= 7 then 'This Week'
+        else 'Planned'
+    end as booking_category,
+    case
+        when v.ticket_price >= 150 then 'Premium'
+        when v.ticket_price >= 75 then 'Standard'
+        else 'Basic'
+    end as ticket_tier,
+    round(v.ticket_price * 0.10, 2) as estimated_commission,
+    case
+        when v.in_park_spend > 0 then 'Yes'
+        else 'No'
+    end as has_add_on_purchases
 from visits v
 left join date_dim d on v.visit_date = d.date_day
