@@ -57,7 +57,21 @@ enriched as (
         end                                     as business_season,
 
         current_timestamp                       as created_at,
-        current_timestamp                       as updated_at
+        current_timestamp                       as updated_at,
+
+        round(ticket_price * 0.05, 2)          as processing_fee,
+        ticket_price * (1 - discount_percent/100) as net_ticket_price,
+        case
+            when ticket_price >= 200 then 'VIP'
+            when ticket_price >= 100 then 'Premium'
+            else 'Standard'
+        end                                     as price_tier,
+        case
+            when is_online = true and discount_percent > 0 then 'Online Discount'
+            when is_online = true then 'Online Full Price'
+            when discount_percent > 0 then 'Physical Discount'
+            else 'Physical Full Price'
+        end                                     as channel_discount_segment
 
     from all_sales
 )
