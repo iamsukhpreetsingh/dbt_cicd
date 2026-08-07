@@ -9,18 +9,18 @@ name: "04 - Deploy to Production"
 # to run — effectively a second gate at deploy time.
 
 on:
-  workflow_run:
-    workflows: [ "03 - Deploy to QA / Staging" ]
-    types: [ completed ]
-  # push:
-  #   branches: [ main ]
-  #   paths:
-  #   - "models/**"
-  #   - "macros/**"
-  #   - "seeds/**"
-  #   - "snapshots/**"
-  #   - "dbt_project.yml"
-  #   - "packages.yml"
+  # workflow_run:
+  #   workflows: [ "03 - Deploy to QA / Staging" ]
+  #   types: [ completed ]
+  push:
+    branches: [ main ]
+    paths:
+    - "models/**"
+    - "macros/**"
+    - "seeds/**"
+    - "snapshots/**"
+    - "dbt_project.yml"
+    - "packages.yml"
 
 concurrency:
   group: deploy-production
