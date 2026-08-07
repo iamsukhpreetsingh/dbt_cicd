@@ -31,7 +31,16 @@ select
         when coalesce(r.tickets_sold, 0) > 0
             then round(r.total_revenue / r.tickets_sold, 2)
         else 0
-    end                              as avg_ticket_price
+    end                              as avg_ticket_price,
+    lag(r.total_revenue, 1) over (order by d.date_day) as previous_day_revenue,
+    case
+        when lag(r.total_revenue, 1) over (order by d.date_day) > 0
+            then round(
+                (r.total_revenue - lag(r.total_revenue, 1) over (order by d.date_day))
+                / lag(r.total_revenue, 1) over (order by d.date_day) * 100
+                , 2)
+        else 0
+    end                              as revenue_change_pct
 from date_dim d
 left join daily r on d.date_day = r.visit_date
 where d.date_day between '2024-01-01' and current_date()
