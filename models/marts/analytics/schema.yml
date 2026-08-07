@@ -333,6 +333,16 @@ models:
     description: Rank by rating, then review volume.
     data_tests:
     - not_null
+  - name: satisfaction_score_pct
+    description: Satisfaction score as percentage (avg_rating / 5 * 100).
+    data_tests:
+    - not_null
+  - name: throughput_ratio
+    description: Ratio of capacity to wait time for throughput efficiency.
+  - name: recommendation_badge
+    description: Badge based on review count and positive review percentage.
+    data_tests:
+    - not_null
 
 - name: ride_satisfaction_opportunities
   description: >
