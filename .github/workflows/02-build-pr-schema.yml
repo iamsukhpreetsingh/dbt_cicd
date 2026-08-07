@@ -103,28 +103,11 @@
 
 name: "02 - Build in PR Schema"
 
-# Diagram step 4: "Build in a Temporary / PR Schema"
-# Depends on workflow 01 finishing successfully (workflow_run chaining).
-# Creates a one-off schema like PR_123_JDOE and runs a full dbt build there
-# so nothing touches shared dev/staging tables.
-
 on:
   workflow_run:
     workflows: [ "01 - CI Checks (PR)" ]
     types: [ completed ]
 
-# NOTE: group by head_branch only, never by pull_requests[0].number.
-# workflow_run.pull_requests[0] is populated by GitHub's own background
-# indexing of "which open PR points at this branch" and is known to come
-# back empty intermittently right after the upstream run completes — even
-# for a genuine same-repo PR. Grouping on `pull_requests[0].number ||
-# head_branch` meant the SAME PR could land in a different concurrency
-# group on different pushes (sometimes the PR-number key, sometimes the
-# branch-name key), so cancel-in-progress silently failed to cancel a
-# stale run — an older run could finish AFTER a newer one and trigger
-# workflow 3 with a stale head_sha, making staging appear to build the
-# previous commit instead of the latest one. head_branch is always
-# present and stable, so it's the only safe grouping key here.
 concurrency:
   group: pr-schema-build-${{ github.event.workflow_run.head_branch }}
   cancel-in-progress: true
@@ -154,14 +137,6 @@ jobs:
       DBT_THREADS: ${{ vars.DBT_THREADS || '4' }}
 
     steps:
-    # Same reliable-resolution pattern used in workflow 3: query the API
-    # for the head branch's open PR instead of trusting
-    # workflow_run.pull_requests[0], which is intermittently empty. A
-    # post-merge / non-PR run (head_branch == default branch, or no open
-    # PR found) is treated as a legitimate skip, not a hard failure — a
-    # setFailed here would have made the whole job's conclusion "failure",
-    # which (combined with the concurrency fix above) is no longer needed
-    # as a safety net, but is still the correct behavior on its own merits.
     - name: Resolve PR number and head SHA
       id: pr
       uses: actions/github-script@v7

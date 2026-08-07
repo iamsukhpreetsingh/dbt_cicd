@@ -63,12 +63,33 @@ final as (
             when datediff('day', r.most_recent_visit_date, current_date()) <= 365 then 'Cooling'
             else 'Lapsed'
         end as recency_segment,
-        case
+case
             when datediff('day', r.most_recent_visit_date, current_date()) > 365 then 'High'
             when datediff('day', r.most_recent_visit_date, current_date()) > 90 then 'Medium'
             else 'Low'
-        end as retention_risk_level
-    from customers c
+        end as retention_risk_level,
+        case
+            when r.total_visits >= 5 then 'Very Frequent'
+            when r.total_visits >= 3 then 'Frequent'
+            when r.total_visits >= 2 then 'Returning'
+            else 'One-Time'
+        end as visit_frequency_tier,
+        case
+            when r.discounted_visit_count > 0 
+            then round(r.discounted_visit_count * 100.0 / r.total_visits, 1)
+            else 0
+        end as discount_usage_pct,
+        case
+            when r.same_day_visit_count > 0
+            then 'Yes'
+            else 'No'
+        end as has_same_day_purchases,
+        case
+            when r.advance_purchase_visit_count > 0
+            then round(r.advance_purchase_visit_count * 100.0 / r.total_visits, 1)
+            else 0
+        end as advance_purchase_pct
+from customers c
     inner join customer_visit_rollup r on c.customer_id = r.customer_id
 )
 
