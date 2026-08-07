@@ -12,15 +12,15 @@ on:
   workflow_run:
     workflows: [ "03 - Deploy to QA / Staging" ]
     types: [ completed ]
-  push:
-    branches: [ main ]
-    paths:
-    - "models/**"
-    - "macros/**"
-    - "seeds/**"
-    - "snapshots/**"
-    - "dbt_project.yml"
-    - "packages.yml"
+  # push:
+  #   branches: [ main ]
+  #   paths:
+  #   - "models/**"
+  #   - "macros/**"
+  #   - "seeds/**"
+  #   - "snapshots/**"
+  #   - "dbt_project.yml"
+  #   - "packages.yml"
 
 concurrency:
   group: deploy-production
@@ -35,8 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: production # <-- prod-scoped vars/secrets + optional required-reviewer gate
     if: >
-      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
-      || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     env:
       DBT_TARGET: ci
       DBT_PROFILES_DIR: ${{ github.workspace }}/profiles
